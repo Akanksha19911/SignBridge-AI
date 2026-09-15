@@ -1046,6 +1046,298 @@ h1 {
   font-weight: 800;
 }
 
+.conversation-topbar {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) minmax(10rem, 12rem) minmax(16rem, 22rem);
+  gap: 0.8rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.conversation-topbar h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.conversation-language {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.turn-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+  min-height: 3.2rem;
+  padding: 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.turn-toggle span {
+  display: grid;
+  min-height: 2.45rem;
+  place-items: center;
+  padding: 0.3rem 0.5rem;
+  border-radius: calc(var(--radius) - 2px);
+  text-align: center;
+}
+
+.turn-toggle span.active {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.auto-switch-toggle {
+  align-self: center;
+}
+
+.conversation-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(20rem, 1.15fr) minmax(0, 0.95fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.conversation-person {
+  display: grid;
+  gap: 1rem;
+}
+
+.conversation-center {
+  min-height: calc(100vh - 9rem);
+}
+
+.chat-timeline {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  height: min(40rem, calc(100vh - 15rem));
+  min-height: 24rem;
+  overflow-y: auto;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-strong);
+}
+
+.chat-message {
+  display: flex;
+}
+
+.chat-message.from-a {
+  justify-content: flex-start;
+}
+
+.chat-message.from-b {
+  justify-content: flex-end;
+}
+
+.chat-bubble {
+  display: grid;
+  gap: 0.5rem;
+  max-width: min(26rem, 88%);
+  padding: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.chat-message.from-b .chat-bubble {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.chat-bubble p {
+  margin: 0;
+  font-weight: 750;
+}
+
+.chat-bubble small,
+.chat-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.conversation-camera {
+  min-height: 12rem;
+  margin-top: 1rem;
+}
+
+.history-tools {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(14rem, 0.6fr);
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.tab-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.tab-button {
+  min-height: 2.45rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.tab-button.active,
+.tab-button:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+.history-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.history-card {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.history-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.history-card time,
+.history-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.history-section {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.history-section p,
+.history-output {
+  margin: 0;
+}
+
+.expandable-text {
+  color: var(--text);
+}
+
+.expandable-text summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.expandable-text p {
+  margin: 0.5rem 0 0;
+  white-space: pre-wrap;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(10, 20, 18, 0.58);
+}
+
+.modal-card {
+  width: min(42rem, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.confirm-card {
+  width: min(28rem, 100%);
+}
+
+.confirm-card h2 {
+  margin: 0 0 0.4rem;
+}
+
+.confirm-card p {
+  margin: 0 0 1rem;
+  color: var(--muted);
+}
+
+.settings-layout {
+  align-items: start;
+}
+
+.settings-form,
+.settings-tests {
+  display: grid;
+  gap: 1rem;
+}
+
+.range-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-weight: 800;
+}
+
+.range-label output {
+  color: var(--primary-strong);
+  font-weight: 900;
+}
+
+.range-control {
+  width: 100%;
+  accent-color: var(--primary);
+}
+
+.settings-tests h2,
+.backend-info h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+}
+
+.backend-info {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.status-card {
+  display: grid;
+  gap: 0.25rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-strong);
+}
+
+.status-card small {
+  color: var(--muted);
+  font-weight: 800;
+}
+
 .card,
 .panel {
   border: 1px solid var(--border);
@@ -1367,6 +1659,8 @@ h1 {
 
   .diagram-grid,
   .upload-grid,
+  .conversation-grid,
+  .history-tools,
   .mode-grid,
   .engine-row {
     grid-template-columns: 1fr;
@@ -1413,6 +1707,23 @@ h1 {
 
   .prediction-card {
     grid-template-columns: 1fr;
+  }
+
+  .conversation-topbar {
+    grid-template-columns: 1fr;
+  }
+
+  .turn-toggle {
+    grid-template-columns: 1fr;
+  }
+
+  .conversation-center {
+    min-height: auto;
+  }
+
+  .chat-timeline {
+    height: auto;
+    max-height: 32rem;
   }
 
   .split {

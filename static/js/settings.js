@@ -1,6 +1,6 @@
 const STORAGE_KEY = "signbridge-settings";
 
-const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS = {
   language: "en",
   theme: "light",
   clipSpeed: 1.0,

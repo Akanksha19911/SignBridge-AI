@@ -97,9 +97,13 @@ export class ClipPlayer {
     }
 
     if (this.index >= this.clips.length - 1) {
+      const wasPlaying = this.isPlaying;
       this.pause();
       this.index = this.clips.length - 1;
       this.render();
+      if (wasPlaying) {
+        this.containerEl.dispatchEvent(new CustomEvent("queueend"));
+      }
       return;
     }
 
