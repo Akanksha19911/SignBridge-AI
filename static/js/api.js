@@ -35,7 +35,9 @@ async function parseJsonResponse(response) {
   }
 
   if (!response.ok) {
-    throw new Error(body.error || `Request failed with status ${response.status}`);
+    const error = new Error(body.error || `Request failed with status ${response.status}`);
+    error.status = response.status;
+    throw error;
   }
 
   return body;
@@ -178,7 +180,7 @@ export function uploadMedia(file, language = "en", onProgress = () => {}) {
 export async function predictSign(landmarks) {
   if (MOCK) {
     await delay();
-    const word = PREDICTIONS[predictionIndex % PREDICTIONS.length];
+    const word = PREDICTIONS[Math.floor(predictionIndex / 2) % PREDICTIONS.length];
     predictionIndex += 1;
     return { word, confidence: 0.9, landmarks };
   }
