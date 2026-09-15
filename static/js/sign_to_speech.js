@@ -5,6 +5,7 @@ import { el, showToast } from "./ui.js";
 
 const videoEl = document.querySelector("#camera-video");
 const canvasEl = document.querySelector("#landmark-canvas");
+const cameraStage = document.querySelector(".camera-stage");
 const startButton = document.querySelector("#start-camera");
 const stopButton = document.querySelector("#stop-camera");
 const cameraStatus = document.querySelector("#camera-status");
@@ -25,6 +26,7 @@ const session = new SignSession({
   confidenceThreshold: settings.confidenceThreshold,
   onFrame: ({ handsDetected }) => {
     handsStatus.textContent = `Hands detected: ${handsDetected ? "yes" : "no"}`;
+    cameraStage.classList.toggle("hands-detected", handsDetected);
   },
   onPrediction: ({ word, confidence }) => renderPrediction(word, confidence),
   onAccept: (word) => acceptWord(word),
@@ -77,6 +79,7 @@ function stopCamera() {
   startButton.disabled = false;
   stopButton.disabled = true;
   resetPredictionDisplay();
+  cameraStage.classList.remove("hands-detected");
 }
 
 async function acceptWord(word) {

@@ -10,6 +10,13 @@ const MODE_LABELS = {
   conversation: "Conversation",
 };
 
+const MODE_ICONS = {
+  media: "play",
+  "speech-to-sign": "wave",
+  "sign-to-speech": "hand",
+  conversation: "chat",
+};
+
 const listEl = document.querySelector("#history-list");
 const searchInput = document.querySelector("#history-search");
 const tabsEl = document.querySelector("#mode-tabs");
@@ -99,8 +106,11 @@ function renderEntry(entry) {
 
   return el("article", { className: "card history-card" }, [
     el("div", { className: "history-card-header" }, [
-      el("span", { className: "badge" }, [MODE_LABELS[entry.mode] || entry.mode]),
-      el("time", { datetime: entry.created_at || "" }, [formatTimestamp(entry.created_at)]),
+      el("div", { className: "history-mode" }, [
+        iconTile(MODE_ICONS[entry.mode] || "chat"),
+        el("span", { className: "badge" }, [MODE_LABELS[entry.mode] || entry.mode]),
+      ]),
+      el("time", { datetime: entry.created_at || "" }, [relativeTime(entry.created_at)]),
     ]),
     el("div", { className: "history-section" }, [
       el("span", { className: "history-label" }, ["Input"]),
@@ -117,8 +127,26 @@ function renderEntry(entry) {
   ]);
 }
 
+function iconTile(name) {
+  const paths = {
+    play: ["M4 6h16v12H4z", "m10 9 5 3-5 3z"],
+    wave: ["M12 3v18", "M8 7v10", "M4 10v4", "M16 7v10", "M20 10v4"],
+    hand: ["M7 11v2a5 5 0 0 0 10 0v-2", "M12 18v3", "M8 21h8", "M9 5a3 3 0 0 1 6 0v8a3 3 0 0 1-6 0z"],
+    chat: ["M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z", "M8 10h8", "M8 14h5"],
+  };
+  return el("span", { className: "history-icon", "aria-hidden": "true" }, [
+    el("svg", { viewBox: "0 0 24 24" }, paths[name].map((d) => el("path", { d }))),
+  ]);
+}
+
 function renderEmpty(message) {
   listEl.replaceChildren(el("div", { className: "empty-state" }, [
+    el("svg", { viewBox: "0 0 48 48", "aria-hidden": "true" }, [
+      el("path", { d: "M12 14h24v24H12z" }),
+      el("path", { d: "M17 10h14" }),
+      el("path", { d: "M18 22h12" }),
+      el("path", { d: "M18 29h8" }),
+    ]),
     el("strong", {}, [message]),
     el("p", {}, ["Saved translations will appear here after you use a mode."]),
   ]));
@@ -178,4 +206,26 @@ function formatTimestamp(value) {
     return "Unknown time";
   }
   return date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+}
+
+function relativeTime(value) {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) {
+    return "Unknown time";
+  }
+
+  const seconds = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
+  if (seconds < 60) {
+    return "Just now";
+  }
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes} min ago`;
+  }
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) {
+    return `${hours} hr ago`;
+  }
+  const days = Math.round(hours / 24);
+  return days < 7 ? `${days} days ago` : formatTimestamp(value);
 }

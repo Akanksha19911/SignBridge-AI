@@ -5,6 +5,7 @@ import { isSpeechRecognitionSupported, SpeechListener } from "./speech-listener.
 import { el, showToast } from "./ui.js";
 
 const micButton = document.querySelector("#mic-button");
+const micStage = document.querySelector(".mic-stage");
 const micButtonLabel = document.querySelector("#mic-button-label");
 const micDot = document.querySelector("#mic-dot");
 const pauseButton = document.querySelector("#pause-button");
@@ -163,6 +164,7 @@ function renderMicState() {
   micButtonLabel.textContent = active ? "Stop" : "Start";
   micButton.setAttribute("aria-label", active ? "Stop microphone" : "Start microphone");
   micButton.classList.toggle("active", active);
+  micStage.classList.toggle("listening", active);
   micDot.classList.toggle("hidden", !active);
   pauseButton.disabled = !listenerState.supported || (!listenerState.listening && !listenerState.paused);
   pauseButton.textContent = listenerState.paused ? "Resume" : "Pause";

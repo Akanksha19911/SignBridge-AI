@@ -181,7 +181,7 @@ export class ClipPlayer {
     const clip = this.clips[this.index];
 
     if (!this.clips.length) {
-      this.stage.replaceChildren(el("div", { className: "empty-state" }, ["Signs will appear here"]));
+      this.stage.replaceChildren(this.emptyState("Signs will appear here"));
       this.caption.textContent = "";
       this.strip.replaceChildren();
       this.playButton.textContent = "Play";
@@ -230,5 +230,17 @@ export class ClipPlayer {
         this.next();
       }
     }, 1000);
+  }
+
+  emptyState(message) {
+    return el("div", { className: "empty-state" }, [
+      el("svg", { viewBox: "0 0 48 48", "aria-hidden": "true" }, [
+        el("path", { d: "M14 30c6-9 14-9 20 0" }),
+        el("path", { d: "M13 23h8c2 0 3 1 3 3v10" }),
+        el("path", { d: "M35 23h-8c-2 0-3 1-3 3v10" }),
+        el("path", { d: "M12 36h24" }),
+      ]),
+      el("strong", {}, [message]),
+    ]);
   }
 }

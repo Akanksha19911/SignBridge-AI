@@ -15,6 +15,7 @@ const languageSelect = document.querySelector("#language-select");
 const showGlossToggle = document.querySelector("#show-gloss");
 const translateButton = document.querySelector("#translate-button");
 const uploadProgress = document.querySelector("#upload-progress");
+const uploadStepper = document.querySelector(".upload-stepper");
 const progressFill = document.querySelector("#progress-fill");
 const progressLabel = document.querySelector("#progress-label");
 const processingState = document.querySelector("#processing-state");
@@ -98,7 +99,8 @@ function setSelectedFile(file) {
   }
 
   selectedFile = file;
-  selectedFileEl.textContent = `${file.name} (${formatBytes(file.size)})`;
+  selectedFileEl.textContent = `${mediaKind(file)} file: ${file.name} (${formatBytes(file.size)})`;
+  selectedFileEl.classList.add("has-file");
   translateButton.disabled = false;
   renderPreview(file);
 }
@@ -132,9 +134,11 @@ async function translateSelectedFile() {
       setProgress(progress);
       if (progress >= 100) {
         processingState.classList.remove("hidden");
+        setStepperStep(1);
       }
     });
 
+    setStepperStep(3);
     lastTranscript = result.transcript || "";
     lastSegments = normalizeSegments(result);
     buildClipMaps(lastSegments);
@@ -293,6 +297,7 @@ function resetPage() {
   segmentFirstClipIndex = [];
   fileInput.value = "";
   selectedFileEl.textContent = "No file selected";
+  selectedFileEl.classList.remove("has-file");
   translateButton.disabled = true;
   uploadProgress.classList.add("hidden");
   processingState.classList.add("hidden");
@@ -317,6 +322,13 @@ function setProgress(progress) {
   const normalizedProgress = Math.max(0, Math.min(Math.round(progress || 0), 100));
   progressFill.style.width = `${normalizedProgress}%`;
   progressLabel.textContent = normalizedProgress >= 100 ? "Upload complete" : `Uploading ${normalizedProgress}%`;
+  setStepperStep(normalizedProgress >= 100 ? 1 : 0);
+}
+
+function setStepperStep(activeIndex) {
+  uploadStepper?.querySelectorAll("span").forEach((step, index) => {
+    step.classList.toggle("active", index <= activeIndex);
+  });
 }
 
 function formatTime(seconds = 0) {
@@ -339,4 +351,8 @@ function formatBytes(bytes) {
     return `${Math.max(1, Math.round(bytes / 1024))} KB`;
   }
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function mediaKind(file) {
+  return AUDIO_EXTENSIONS.has(extensionFor(file.name)) ? "Audio" : "Video";
 }

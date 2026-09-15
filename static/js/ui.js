@@ -4,13 +4,20 @@ export function showToast(message, type = "info") {
     return;
   }
 
-  const toast = el("div", { className: `toast ${type}`, role: "status" }, [message]);
+  const icon = type === "success" ? "OK" : type === "error" ? "!" : type === "warning" ? "!" : "i";
+  const toast = el("div", { className: `toast ${type}`, role: "status" }, [
+    el("span", { className: "toast-icon", "aria-hidden": "true" }, [icon]),
+    el("span", {}, [message]),
+  ]);
   container.append(toast);
   window.setTimeout(() => toast.remove(), 4200);
 }
 
 export function el(tag, attrs = {}, children = []) {
-  const node = document.createElement(tag);
+  const svgTags = new Set(["svg", "path", "circle", "line", "polyline", "polygon", "rect"]);
+  const node = svgTags.has(tag)
+    ? document.createElementNS("http://www.w3.org/2000/svg", tag)
+    : document.createElement(tag);
 
   Object.entries(attrs || {}).forEach(([key, value]) => {
     if (value === false || value === null || value === undefined) {
@@ -18,7 +25,7 @@ export function el(tag, attrs = {}, children = []) {
     }
 
     if (key === "className") {
-      node.className = value;
+      node.setAttribute("class", value);
     } else if (key === "dataset") {
       Object.assign(node.dataset, value);
     } else if (key === "style" && typeof value === "object") {

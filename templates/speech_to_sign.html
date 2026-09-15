@@ -1,16 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Live Sign Interpreter | SignBridge AI{% endblock %}
+{% block title %}Live Sign Interpreter - SignBridge AI{% endblock %}
+{% block page_kicker %}Live Sign Interpreter{% endblock %}
+{% block page_heading %}Speech to ISL{% endblock %}
+{% block page_description %}Speak into the mic. The avatar signs it in order.{% endblock %}
 
 {% block content %}
-  <section class="page-header">
-    <div>
-      <p class="eyebrow">Live Sign Interpreter</p>
-      <h1>Speech to ISL</h1>
-      <p class="page-lede">Speak into the mic. The avatar signs it in order.</p>
-    </div>
-  </section>
-
   <section class="split speech-layout" aria-label="Speech to sign workspace">
     <article class="panel speaker-panel">
       <div class="result-heading">
@@ -24,6 +19,9 @@
           <span class="recording-dot hidden" id="mic-dot" aria-hidden="true"></span>
           <span id="mic-button-label">Start</span>
         </button>
+        <div class="audio-bars" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
       </div>
 
       <div class="control-row">
@@ -50,7 +48,7 @@
       <div class="bubble-list" id="sentence-list" aria-live="polite" aria-label="Final sentences"></div>
     </article>
 
-    <article class="panel">
+    <article class="panel avatar-panel">
       <div class="result-heading">
         <h2>ISL Avatar</h2>
       </div>

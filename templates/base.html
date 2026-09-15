@@ -4,22 +4,34 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}SignBridge AI{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%234F46E5'/%3E%3Cpath d='M15 29c5-8 13-8 18 0M13 22h7c2 0 3 1 3 3v9M35 22h-7c-2 0-3 1-3 3v9M12 33h24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   </head>
   <body>
     {% set current_path = request.path if request is defined else '/' %}
     <div class="app-shell">
       <input class="nav-toggle" type="checkbox" id="nav-toggle" aria-label="Toggle navigation">
+      <label class="drawer-overlay" for="nav-toggle" aria-label="Close navigation"></label>
       <aside class="sidebar" aria-label="Primary navigation">
         <div class="sidebar-header">
           <a class="brand" href="/">
-            <span class="brand-mark" aria-hidden="true">SB</span>
+            <span class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 48 48">
+                <path d="M15 29c5-8 13-8 18 0"></path>
+                <path d="M13 22h7c2 0 3 1 3 3v9"></path>
+                <path d="M35 22h-7c-2 0-3 1-3 3v9"></path>
+                <path d="M12 33h24"></path>
+              </svg>
+            </span>
             <span>
               <strong>SignBridge AI</strong>
               <small>Breaking Communication Barriers</small>
             </span>
           </a>
-          <label class="btn btn-icon mobile-nav-close" for="nav-toggle" aria-label="Close navigation">
+          <label class="btn btn-icon mobile-nav-close drawer-button" for="nav-toggle" role="button" tabindex="0" aria-label="Close navigation">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M18 6 6 18M6 6l12 12"></path>
             </svg>
@@ -36,7 +48,7 @@
             </span>
           </a>
 
-          <div class="nav-divider" role="separator"></div>
+          <div class="nav-section-label">Translate</div>
 
           <a class="nav-link {{ 'active' if current_path == '/media' else '' }}" href="/media">
             <span class="nav-icon" aria-hidden="true">
@@ -75,7 +87,7 @@
             </span>
           </a>
 
-          <div class="nav-divider" role="separator"></div>
+          <div class="nav-section-label">More</div>
 
           <a class="nav-link {{ 'active' if current_path == '/history' else '' }}" href="/history">
             <span class="nav-icon" aria-hidden="true">
@@ -107,7 +119,7 @@
       </aside>
 
       <div class="mobile-topbar">
-        <label class="btn btn-icon" for="nav-toggle" aria-label="Open navigation">
+        <label class="btn btn-icon drawer-button" for="nav-toggle" role="button" tabindex="0" aria-label="Open navigation">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path>
           </svg>
@@ -116,6 +128,24 @@
       </div>
 
       <main class="main-content" id="main-content">
+        <header class="app-topbar">
+          <div class="app-topbar-copy">
+            <p class="eyebrow">{% block page_kicker %}SignBridge AI{% endblock %}</p>
+            <h1>{% block page_heading %}SignBridge AI{% endblock %}</h1>
+            <p class="page-lede">{% block page_description %}Real-time translation between Indian Sign Language, speech and text.{% endblock %}</p>
+          </div>
+          <div class="app-topbar-actions">
+            {% block page_actions %}{% endblock %}
+            <button class="btn btn-icon theme-toggle" id="theme-toggle" type="button" aria-label="Toggle theme">
+              <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 4V2"></path><path d="M12 22v-2"></path><path d="m17.66 6.34 1.41-1.41"></path><path d="m4.93 19.07 1.41-1.41"></path><path d="M20 12h2"></path><path d="M2 12h2"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="m4.93 4.93 1.41 1.41"></path><circle cx="12" cy="12" r="4"></circle>
+              </svg>
+              <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 7 7 0 1 0 20.5 14.5z"></path>
+              </svg>
+            </button>
+          </div>
+        </header>
         {% block content %}{% endblock %}
       </main>
     </div>
@@ -124,10 +154,11 @@
 
     <script type="module">
       import { health } from "{{ url_for('static', filename='js/api.js') }}";
+      import { getSettings, saveSettings } from "{{ url_for('static', filename='js/settings.js') }}";
       import { showToast } from "{{ url_for('static', filename='js/ui.js') }}";
-      import "{{ url_for('static', filename='js/settings.js') }}";
 
       const statusEl = document.querySelector("#backend-status");
+      const themeToggle = document.querySelector("#theme-toggle");
 
       function renderStatus(backendOnline, modelReady) {
         const dot = statusEl.querySelector(".status-dot");
@@ -142,6 +173,26 @@
           renderStatus(false, false);
           showToast(error.message || "Backend is offline", "warning");
         });
+
+      themeToggle.addEventListener("click", () => {
+        const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        saveSettings({ theme: nextTheme });
+        const themeSelect = document.querySelector("#theme");
+        if (themeSelect) {
+          themeSelect.value = nextTheme;
+        }
+      });
+
+      document.querySelectorAll(".drawer-button").forEach((button) => {
+        button.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            button.click();
+          }
+        });
+      });
+
+      document.documentElement.dataset.theme = getSettings().theme;
     </script>
     {% block scripts %}{% endblock %}
   </body>

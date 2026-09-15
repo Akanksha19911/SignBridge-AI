@@ -1,16 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Live Sign Translator | SignBridge AI{% endblock %}
+{% block title %}Live Sign Translator - SignBridge AI{% endblock %}
+{% block page_kicker %}Live Sign Translator{% endblock %}
+{% block page_heading %}ISL to Speech{% endblock %}
+{% block page_description %}Sign to the camera. SignBridge turns recognized signs into a spoken sentence.{% endblock %}
 
 {% block content %}
-  <section class="page-header">
-    <div>
-      <p class="eyebrow">Live Sign Translator</p>
-      <h1>ISL to Speech</h1>
-      <p class="page-lede">Sign to the camera. SignBridge turns recognized signs into a spoken sentence.</p>
-    </div>
-  </section>
-
   <section class="model-banner hidden" id="model-banner" role="status">
     Sign model not trained yet
   </section>
@@ -28,11 +23,11 @@
       <div class="camera-stage video-frame">
         <video id="camera-video" autoplay muted playsinline aria-label="Live camera feed"></video>
         <canvas id="landmark-canvas" aria-label="Hand landmark overlay"></canvas>
-      </div>
-
-      <div class="status-grid" aria-live="polite">
-        <span class="badge" id="camera-status">Camera off</span>
-        <span class="badge" id="hands-status">Hands detected: no</span>
+        <div class="camera-overlay">
+          <span class="badge" id="camera-status">Camera off</span>
+          <span class="badge" id="hands-status">Hands detected: no</span>
+          <span class="badge prediction-badge">Prediction</span>
+        </div>
       </div>
 
       <div class="prediction-card">
@@ -60,7 +55,10 @@
       </div>
 
       <div class="control-row">
-        <button class="btn btn-primary" id="speak-button" type="button" disabled>Speak</button>
+        <button class="btn btn-primary" id="speak-button" type="button" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
+          Speak
+        </button>
         <button class="btn btn-secondary" id="clear-button" type="button">Clear</button>
       </div>
 

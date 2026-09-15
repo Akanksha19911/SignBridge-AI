@@ -144,7 +144,15 @@ export class HandTracker {
     this.ctx.clearRect(0, 0, width, height);
 
     (result.landmarks || []).forEach((landmarks) => {
-      this.ctx.strokeStyle = "#5ed6c5";
+      const styles = getComputedStyle(this.canvasEl);
+      const rootStyles = getComputedStyle(document.documentElement);
+      const lineColor = styles.getPropertyValue("--landmark-line").trim()
+        || rootStyles.getPropertyValue("--accent").trim()
+        || "CanvasText";
+      const dotColor = styles.getPropertyValue("--landmark-dot").trim()
+        || rootStyles.getPropertyValue("--coral").trim()
+        || "CanvasText";
+      this.ctx.strokeStyle = lineColor;
       this.ctx.lineWidth = 3;
       HAND_CONNECTIONS.forEach(([start, end]) => {
         const a = landmarks[start];
@@ -158,7 +166,7 @@ export class HandTracker {
         this.ctx.stroke();
       });
 
-      this.ctx.fillStyle = "#ffbf47";
+      this.ctx.fillStyle = dotColor;
       landmarks.forEach((landmark) => {
         this.ctx.beginPath();
         this.ctx.arc(landmark.x * width, landmark.y * height, 4, 0, Math.PI * 2);

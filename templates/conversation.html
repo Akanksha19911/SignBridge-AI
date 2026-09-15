@@ -1,14 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Conversation Mode | SignBridge AI{% endblock %}
-
-{% block content %}
-  <section class="conversation-topbar" aria-label="Conversation controls">
-    <div>
-      <p class="eyebrow">Conversation Mode</p>
-      <h1>Conversation Mode</h1>
-    </div>
-
+{% block title %}Conversation Mode - SignBridge AI{% endblock %}
+{% block page_kicker %}Conversation Mode{% endblock %}
+{% block page_heading %}Conversation Mode{% endblock %}
+{% block page_description %}One screen for Person A speaking and Person B signing.{% endblock %}
+{% block page_actions %}
+  <div class="conversation-topbar" aria-label="Conversation controls">
     <label class="conversation-language">
       <span>Person A language</span>
       <select id="person-a-language" class="field-control">
@@ -29,16 +26,20 @@
 
     <button class="btn btn-danger" id="end-conversation" type="button">End conversation</button>
     <button class="btn btn-secondary hidden" id="download-conversation" type="button">Download transcript (.txt)</button>
-  </section>
+    <span class="hint-chip">Press Space to switch turns</span>
+  </div>
+{% endblock %}
 
+{% block content %}
   <section class="model-banner hidden" id="conversation-model-banner" role="status">
     Sign model not trained yet
   </section>
 
   <section class="conversation-grid" aria-label="Two-way conversation workspace">
-    <article class="panel conversation-person">
+    <article class="panel conversation-person active-turn" id="person-a-panel">
       <div class="result-heading">
         <h2>Person A (Speaks)</h2>
+        <span class="turn-label">Your turn</span>
       </div>
       <p class="support-message hidden" id="speech-support-message">Please use Google Chrome for live speech</p>
       <div class="status-grid">
@@ -55,13 +56,21 @@
         <button class="btn btn-secondary" id="done-signing" type="button">Done signing</button>
       </div>
       <div class="chat-timeline" id="chat-timeline" aria-live="polite" aria-label="Conversation timeline">
-        <div class="empty-state">Conversation messages will appear here</div>
+        <div class="empty-state">
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <path d="M10 14a8 8 0 0 1 8-8h12a8 8 0 0 1 8 8v8a8 8 0 0 1-8 8h-9l-9 7v-8a8 8 0 0 1-2-6z"></path>
+            <path d="M18 17h12"></path>
+            <path d="M18 23h8"></path>
+          </svg>
+          <strong>Conversation messages will appear here</strong>
+        </div>
       </div>
     </article>
 
-    <article class="panel conversation-person">
+    <article class="panel conversation-person inactive-turn" id="person-b-panel">
       <div class="result-heading">
         <h2>Person B (Signs)</h2>
+        <span class="turn-label">Your turn</span>
       </div>
       <div id="conversation-player"></div>
 

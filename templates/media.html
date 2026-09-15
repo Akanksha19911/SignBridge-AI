@@ -1,16 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Translate Media | SignBridge AI{% endblock %}
+{% block title %}Translate Media - SignBridge AI{% endblock %}
+{% block page_kicker %}Translate Media{% endblock %}
+{% block page_heading %}Media to ISL{% endblock %}
+{% block page_description %}Upload a lecture, video or audio and watch it as ISL sign clips.{% endblock %}
 
 {% block content %}
-  <section class="page-header">
-    <div>
-      <p class="eyebrow">Translate Media</p>
-      <h1>Media to ISL</h1>
-      <p class="page-lede">Upload a lecture, video or audio and watch it as ISL sign clips.</p>
-    </div>
-  </section>
-
   <section class="panel media-workspace" aria-labelledby="upload-title">
     <div class="upload-grid">
       <div
@@ -60,6 +55,12 @@
             <span id="progress-fill"></span>
           </div>
           <p id="progress-label">Uploading 0%</p>
+          <div class="upload-stepper" aria-hidden="true">
+            <span class="active">Uploading</span>
+            <span>Transcribing</span>
+            <span>Translating to ISL</span>
+            <span>Ready</span>
+          </div>
         </div>
 
         <div class="processing-state hidden" id="processing-state" aria-live="polite">

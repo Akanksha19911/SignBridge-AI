@@ -15,12 +15,15 @@ const downloadButton = document.querySelector("#download-conversation");
 const supportMessage = document.querySelector("#speech-support-message");
 const modelBanner = document.querySelector("#conversation-model-banner");
 const micStatus = document.querySelector("#mic-status");
+const personAPanel = document.querySelector("#person-a-panel");
+const personBPanel = document.querySelector("#person-b-panel");
 const personAInterim = document.querySelector("#person-a-interim");
 const chatTimeline = document.querySelector("#chat-timeline");
 const doneSigningButton = document.querySelector("#done-signing");
 const videoEl = document.querySelector("#conversation-video");
 const canvasEl = document.querySelector("#conversation-canvas");
 const cameraStatus = document.querySelector("#camera-status");
+const cameraStage = document.querySelector(".conversation-camera");
 const handsStatus = document.querySelector("#hands-status");
 const detectedWordsEl = document.querySelector("#detected-words");
 const player = new ClipPlayer(document.querySelector("#conversation-player"));
@@ -58,6 +61,7 @@ const signSession = new SignSession({
   confidenceThreshold: settings.confidenceThreshold,
   onFrame: ({ handsDetected }) => {
     handsStatus.textContent = `Hands detected: ${handsDetected ? "yes" : "no"}`;
+    cameraStage.classList.toggle("hands-detected", handsDetected);
   },
   onPrediction: () => {},
   onAccept: (word) => handlePersonBWord(word),
@@ -311,6 +315,10 @@ function renderTurn() {
   turnToggle.classList.toggle("person-b", turn === "b");
   turnALabel.classList.toggle("active", turn === "a");
   turnBLabel.classList.toggle("active", turn === "b");
+  personAPanel.classList.toggle("active-turn", turn === "a");
+  personAPanel.classList.toggle("inactive-turn", turn !== "a");
+  personBPanel.classList.toggle("active-turn", turn === "b");
+  personBPanel.classList.toggle("inactive-turn", turn !== "b");
   doneSigningButton.disabled = turn !== "b";
   renderMicStatus();
 }
@@ -362,6 +370,7 @@ function cleanup() {
   cameraStarted = false;
   cameraStatus.textContent = "Camera off";
   handsStatus.textContent = "Hands detected: no";
+  cameraStage.classList.remove("hands-detected");
 }
 
 function formatTime(date) {
