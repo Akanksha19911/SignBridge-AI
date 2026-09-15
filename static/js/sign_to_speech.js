@@ -1,6 +1,6 @@
-import { addHistory, predictSign, signSentence } from "./api.js";
-import { HandTracker } from "./hand-tracker.js";
+import { addHistory, signSentence } from "./api.js";
 import { getSettings } from "./settings.js";
+import { SignSession } from "./sign-session.js";
 import { el, showToast } from "./ui.js";
 
 const videoEl = document.querySelector("#camera-video");
@@ -21,15 +21,20 @@ const autoSpeakToggle = document.querySelector("#auto-speak");
 const conversationHistory = document.querySelector("#conversation-history");
 
 const settings = getSettings();
-const tracker = new HandTracker({ onFrame: handleFrame, onError: (error) => showToast(error.message, "error") });
+const session = new SignSession({
+  confidenceThreshold: settings.confidenceThreshold,
+  onFrame: ({ handsDetected }) => {
+    handsStatus.textContent = `Hands detected: ${handsDetected ? "yes" : "no"}`;
+  },
+  onPrediction: ({ word, confidence }) => renderPrediction(word, confidence),
+  onAccept: (word) => acceptWord(word),
+  onModelNotTrained: () => {
+    modelBanner.classList.remove("hidden");
+    showToast("Sign model not trained yet.", "warning");
+  },
+  onError: (error) => showToast(error.message || "Could not predict the sign.", "error"),
+});
 
-let frameCount = 0;
-let predictionBusy = false;
-let predictionsDisabled = false;
-let lastPredictionWord = "";
-let repeatedPredictions = 0;
-let lastAcceptedWord = "";
-let cooldownUntil = 0;
 let acceptedWords = [];
 let currentSentence = "";
 let autoSpeakTimer = 0;
@@ -39,6 +44,7 @@ startButton.addEventListener("click", startCamera);
 stopButton.addEventListener("click", stopCamera);
 speakButton.addEventListener("click", () => speakAndArchiveCurrent());
 clearButton.addEventListener("click", clearCurrent);
+window.addEventListener("beforeunload", () => session.stop());
 
 window.speechSynthesis?.addEventListener("voiceschanged", loadVoices);
 loadVoices();
@@ -47,9 +53,9 @@ async function startCamera() {
   try {
     startButton.disabled = true;
     startButton.textContent = "Starting...";
-    predictionsDisabled = false;
     modelBanner.classList.add("hidden");
-    await tracker.start(videoEl, canvasEl);
+    session.setPredictionEnabled(true);
+    await session.start(videoEl, canvasEl);
     cameraStatus.textContent = "Camera on";
     stopButton.disabled = false;
     startButton.textContent = "Start";
@@ -65,7 +71,7 @@ async function startCamera() {
 }
 
 function stopCamera() {
-  tracker.stop();
+  session.stop();
   cameraStatus.textContent = "Camera off";
   handsStatus.textContent = "Hands detected: no";
   startButton.disabled = false;
@@ -73,64 +79,8 @@ function stopCamera() {
   resetPredictionDisplay();
 }
 
-function handleFrame({ handsDetected }) {
-  frameCount += 1;
-  handsStatus.textContent = `Hands detected: ${handsDetected ? "yes" : "no"}`;
-
-  if (predictionsDisabled || predictionBusy || frameCount % 10 !== 0) {
-    return;
-  }
-
-  const buffer = tracker.getBuffer();
-  if (buffer.length === 30 && tracker.getRecentHandsDetectedCount() >= 20) {
-    requestPrediction(buffer);
-  }
-}
-
-async function requestPrediction(buffer) {
-  if (Date.now() < cooldownUntil) {
-    return;
-  }
-
-  predictionBusy = true;
-  try {
-    const result = await predictSign(buffer);
-    const word = String(result.word || "").toUpperCase();
-    const confidence = Number(result.confidence) || 0;
-    renderPrediction(word, confidence);
-
-    if (word && word === lastPredictionWord) {
-      repeatedPredictions += 1;
-    } else {
-      lastPredictionWord = word;
-      repeatedPredictions = 1;
-    }
-
-    if (
-      word &&
-      confidence >= settings.confidenceThreshold &&
-      repeatedPredictions >= 2 &&
-      word !== lastAcceptedWord
-    ) {
-      acceptWord(word);
-    }
-  } catch (error) {
-    if (error.status === 503) {
-      predictionsDisabled = true;
-      modelBanner.classList.remove("hidden");
-      showToast("Sign model not trained yet.", "warning");
-    } else {
-      showToast(error.message || "Could not predict the sign.", "error");
-    }
-  } finally {
-    predictionBusy = false;
-  }
-}
-
 async function acceptWord(word) {
   acceptedWords.push(word);
-  lastAcceptedWord = word;
-  cooldownUntil = Date.now() + 1000;
   renderAcceptedWords();
   scheduleAutoSpeak();
 
@@ -202,7 +152,7 @@ async function speakAndArchiveCurrent() {
 function addConversationItem(words, sentence) {
   const item = el("div", { className: "conversation-item" }, [
     el("button", {
-      className: "btn btn-icon",
+      className: "btn btn-secondary",
       type: "button",
       "aria-label": "Replay spoken sentence",
       onClick: () => speakText(sentence),
@@ -250,6 +200,7 @@ function clearCurrent() {
   window.clearTimeout(autoSpeakTimer);
   resetCurrentSentence();
   conversationHistory.replaceChildren();
+  session.resetAcceptance();
 }
 
 function resetCurrentSentence() {
@@ -258,5 +209,4 @@ function resetCurrentSentence() {
   detectedWordsEl.replaceChildren();
   sentenceOutput.textContent = "Accepted signs will appear here.";
   speakButton.disabled = true;
-  lastAcceptedWord = "";
 }

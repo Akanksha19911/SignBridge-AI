@@ -1,13 +1,8 @@
 import { addHistory, textToSign } from "./api.js";
 import { ClipPlayer } from "./clip-player.js";
 import { getSettings, saveSettings } from "./settings.js";
+import { isSpeechRecognitionSupported, SpeechListener } from "./speech-listener.js";
 import { el, showToast } from "./ui.js";
-
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const LANGUAGE_TO_RECOGNITION = {
-  en: "en-IN",
-  hi: "hi-IN",
-};
 
 const micButton = document.querySelector("#mic-button");
 const micButtonLabel = document.querySelector("#mic-button-label");
@@ -25,21 +20,25 @@ const player = new ClipPlayer(document.querySelector("#clip-player"));
 const settings = getSettings();
 languageSelect.value = settings.language;
 
-let recognition = null;
-let shouldListen = false;
-let isPaused = false;
-let isRecognitionRunning = false;
+let listenerState = { active: false, listening: false, paused: false, supported: isSpeechRecognitionSupported() };
+const listener = new SpeechListener({
+  onFinal: handleFinalSentence,
+  onInterim: renderInterim,
+  onError: (error) => showToast(error.message, "error"),
+  onState: (state) => {
+    listenerState = state;
+    renderMicState();
+  },
+});
 
-if (SpeechRecognition) {
-  recognition = createRecognition();
-} else {
+if (!isSpeechRecognitionSupported()) {
   supportMessage.classList.remove("hidden");
   micButton.disabled = true;
   pauseButton.disabled = true;
 }
 
 micButton.addEventListener("click", () => {
-  if (shouldListen) {
+  if (listenerState.listening) {
     stopListening();
   } else {
     startListening();
@@ -47,7 +46,7 @@ micButton.addEventListener("click", () => {
 });
 
 pauseButton.addEventListener("click", () => {
-  if (isPaused) {
+  if (listenerState.paused) {
     resumeListening();
   } else {
     pauseListening();
@@ -64,135 +63,35 @@ typedSentence.addEventListener("keydown", (event) => {
 
 languageSelect.addEventListener("change", () => {
   saveSettings({ language: languageSelect.value });
-  if (recognition) {
-    recognition.lang = languageForRecognition();
-  }
+  listener.setLanguage(languageSelect.value);
 });
 
-function createRecognition() {
-  const instance = new SpeechRecognition();
-  instance.continuous = true;
-  instance.interimResults = true;
-  instance.lang = languageForRecognition();
-
-  instance.onstart = () => {
-    isRecognitionRunning = true;
-    renderMicState();
-  };
-
-  instance.onresult = (event) => {
-    let interim = "";
-
-    for (let index = event.resultIndex; index < event.results.length; index += 1) {
-      const result = event.results[index];
-      const text = result[0].transcript.trim();
-      if (!text) {
-        continue;
-      }
-
-      if (result.isFinal) {
-        handleFinalSentence(text);
-      } else {
-        interim += `${text} `;
-      }
-    }
-
-    interimText.textContent = interim.trim() || "Listening...";
-    interimText.classList.toggle("has-interim", Boolean(interim.trim()));
-  };
-
-  instance.onerror = (event) => {
-    if (event.error === "not-allowed") {
-      shouldListen = false;
-      isPaused = false;
-      showToast("Microphone permission was denied. Allow mic access in Chrome and try again.", "error");
-    } else if (event.error !== "no-speech") {
-      showToast(`Speech recognition error: ${event.error}`, "error");
-    }
-    renderMicState();
-  };
-
-  instance.onend = () => {
-    isRecognitionRunning = false;
-    renderMicState();
-
-    if (shouldListen && !isPaused) {
-      window.setTimeout(() => {
-        if (shouldListen && !isPaused && !isRecognitionRunning) {
-          startRecognition();
-        }
-      }, 250);
-    }
-  };
-
-  return instance;
-}
+window.addEventListener("beforeunload", () => listener.destroy());
 
 function startListening() {
-  if (!recognition) {
-    showToast("Please use Google Chrome for live speech", "warning");
-    return;
+  try {
+    listener.start(languageSelect.value);
+    interimText.textContent = "Listening...";
+  } catch (error) {
+    showToast(error.message, "warning");
   }
-
-  shouldListen = true;
-  isPaused = false;
-  interimText.textContent = "Listening...";
-  startRecognition();
-  renderMicState();
 }
 
 function stopListening() {
-  shouldListen = false;
-  isPaused = false;
-  stopRecognition();
+  listener.stop();
   interimText.textContent = "Stopped";
-  renderMicState();
 }
 
 function pauseListening() {
-  isPaused = true;
-  stopRecognition();
+  listener.pause();
   player.pause();
   interimText.textContent = "Paused";
-  renderMicState();
 }
 
 function resumeListening() {
-  if (!recognition) {
-    return;
-  }
-
-  shouldListen = true;
-  isPaused = false;
-  startRecognition();
+  listener.resume(languageSelect.value);
   player.play();
   interimText.textContent = "Listening...";
-  renderMicState();
-}
-
-function startRecognition() {
-  if (!recognition || isRecognitionRunning) {
-    return;
-  }
-
-  recognition.lang = languageForRecognition();
-  try {
-    recognition.start();
-  } catch (error) {
-    showToast("Could not start speech recognition. Please try again.", "error");
-  }
-}
-
-function stopRecognition() {
-  if (!recognition || !isRecognitionRunning) {
-    return;
-  }
-
-  try {
-    recognition.stop();
-  } catch (error) {
-    isRecognitionRunning = false;
-  }
 }
 
 async function handleFinalSentence(text) {
@@ -208,7 +107,7 @@ async function handleFinalSentence(text) {
     );
     if (Array.isArray(result.clips) && result.clips.length) {
       player.enqueue(result.clips);
-      if (isPaused) {
+      if (listenerState.paused) {
         player.pause();
       }
     }
@@ -236,6 +135,11 @@ function renderSentenceBubble(text) {
   return bubble;
 }
 
+function renderInterim(text) {
+  interimText.textContent = text || "Listening...";
+  interimText.classList.toggle("has-interim", Boolean(text));
+}
+
 function sendTypedSentence() {
   const text = typedSentence.value.trim();
   if (!text) {
@@ -249,23 +153,19 @@ function sendTypedSentence() {
 
 function clearSession() {
   sentenceList.replaceChildren();
-  interimText.textContent = shouldListen && !isPaused ? "Listening..." : "Waiting for speech...";
+  interimText.textContent = listenerState.active ? "Listening..." : "Waiting for speech...";
   interimText.classList.remove("has-interim");
   player.clear();
 }
 
 function renderMicState() {
-  const active = shouldListen && !isPaused;
+  const active = listenerState.active;
   micButtonLabel.textContent = active ? "Stop" : "Start";
   micButton.setAttribute("aria-label", active ? "Stop microphone" : "Start microphone");
   micButton.classList.toggle("active", active);
   micDot.classList.toggle("hidden", !active);
-  pauseButton.disabled = !recognition || (!shouldListen && !isPaused);
-  pauseButton.textContent = isPaused ? "Resume" : "Pause";
-}
-
-function languageForRecognition() {
-  return LANGUAGE_TO_RECOGNITION[languageSelect.value] || "en-IN";
+  pauseButton.disabled = !listenerState.supported || (!listenerState.listening && !listenerState.paused);
+  pauseButton.textContent = listenerState.paused ? "Resume" : "Pause";
 }
 
 function formatTime(date) {
