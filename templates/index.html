@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}SignBridge AI{% endblock %}
+
+{% block content %}
+  <section class="home-hero" aria-labelledby="home-title">
+    <div class="home-hero-copy">
+      <h1 id="home-title">SignBridge AI</h1>
+      <p class="home-tagline">Breaking Communication Barriers</p>
+      <p class="page-lede">Real-time translation between Indian Sign Language, speech and text.</p>
+    </div>
+  </section>
+
+  <section class="flow-diagram" aria-labelledby="diagram-title">
+    <div class="section-heading">
+      <p class="eyebrow">Translation flow</p>
+      <h2 id="diagram-title">One bridge, three engines</h2>
+    </div>
+
+    <div class="diagram-grid">
+      <div class="diagram-hub">SIGNBRIDGE AI</div>
+      <div class="diagram-branches" aria-label="SignBridge AI translation engine paths">
+        <div class="diagram-path">
+          <span>Upload Audio/Video</span>
+          <b aria-hidden="true">-&gt;</b>
+          <strong>AI Text</strong>
+          <b aria-hidden="true">-&gt;</b>
+          <span>Avatar</span>
+        </div>
+        <div class="diagram-path">
+          <span>Sign (Live Camera)</span>
+          <b aria-hidden="true">-&gt;</b>
+          <strong>AI Text</strong>
+          <b aria-hidden="true">-&gt;</b>
+          <span>Speech</span>
+        </div>
+        <div class="diagram-path">
+          <span>Speech (Live)</span>
+          <b aria-hidden="true">-&gt;</b>
+          <strong>AI Text</strong>
+          <b aria-hidden="true">-&gt;</b>
+          <span>Avatar</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mode-grid" aria-label="Translation modes">
+    <a class="mode-card card" href="/media">
+      <span class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"></path><path d="m10 9 5 3-5 3z"></path></svg>
+      </span>
+      <strong>Translate Media</strong>
+      <p>Upload a lecture, video or audio and watch it in ISL.</p>
+    </a>
+
+    <a class="mode-card card" href="/sign-to-speech">
+      <span class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M7 11v2a5 5 0 0 0 10 0v-2"></path><path d="M12 18v3"></path><path d="M8 21h8"></path><path d="M9 5a3 3 0 0 1 6 0v8a3 3 0 0 1-6 0z"></path></svg>
+      </span>
+      <strong>Live Sign Translator</strong>
+      <p>Sign to the camera. We speak it aloud.</p>
+    </a>
+
+    <a class="mode-card card" href="/speech-to-sign">
+      <span class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 3v18"></path><path d="M8 7v10"></path><path d="M4 10v4"></path><path d="M16 7v10"></path><path d="M20 10v4"></path></svg>
+      </span>
+      <strong>Live Sign Interpreter</strong>
+      <p>Speak into the mic. The avatar signs it.</p>
+    </a>
+
+    <a class="mode-card mode-card-featured card" href="/conversation">
+      <span class="mode-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 10h8"></path><path d="M8 14h5"></path></svg>
+      </span>
+      <strong>Conversation Mode</strong>
+      <p>Two people, two languages, one conversation.</p>
+    </a>
+  </section>
+
+  <section class="how-row" aria-labelledby="how-title">
+    <div class="section-heading">
+      <p class="eyebrow">How it works</p>
+      <h2 id="how-title">Engines working together</h2>
+    </div>
+    <div class="engine-row">
+      <div class="engine-item">
+        <strong>Media Translation Engine</strong>
+      </div>
+      <div class="engine-item">
+        <strong>Sign Recognition Engine</strong>
+      </div>
+      <div class="engine-item">
+        <strong>Speech Translation Engine</strong>
+      </div>
+      <div class="engine-item unified">
+        <strong>Unified Experience: Two-Way Conversation</strong>
+      </div>
+    </div>
+  </section>
+{% endblock %}
