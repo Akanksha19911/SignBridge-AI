@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Conversation Mode | SignBridge AI{% endblock %}
+
+{% block content %}
+  <section class="conversation-topbar" aria-label="Conversation controls">
+    <div>
+      <p class="eyebrow">Conversation Mode</p>
+      <h1>Conversation Mode</h1>
+    </div>
+
+    <label class="conversation-language">
+      <span>Person A language</span>
+      <select id="person-a-language" class="field-control">
+        <option value="en">English</option>
+        <option value="hi">Hindi</option>
+      </select>
+    </label>
+
+    <button class="turn-toggle" id="turn-toggle" type="button" aria-label="Toggle conversation turn">
+      <span id="turn-a-label">Person A speaking</span>
+      <span id="turn-b-label">Person B signing</span>
+    </button>
+
+    <label class="toggle-row auto-switch-toggle">
+      <input id="auto-switch" type="checkbox" checked>
+      <span>Auto switch turns</span>
+    </label>
+
+    <button class="btn btn-danger" id="end-conversation" type="button">End conversation</button>
+    <button class="btn btn-secondary hidden" id="download-conversation" type="button">Download transcript (.txt)</button>
+  </section>
+
+  <section class="model-banner hidden" id="conversation-model-banner" role="status">
+    Sign model not trained yet
+  </section>
+
+  <section class="conversation-grid" aria-label="Two-way conversation workspace">
+    <article class="panel conversation-person">
+      <div class="result-heading">
+        <h2>Person A (Speaks)</h2>
+      </div>
+      <p class="support-message hidden" id="speech-support-message">Please use Google Chrome for live speech</p>
+      <div class="status-grid">
+        <span class="badge" id="mic-status">Mic off</span>
+      </div>
+      <div class="interim-box" aria-live="polite">
+        <span id="person-a-interim">Waiting for Person A...</span>
+      </div>
+    </article>
+
+    <article class="panel conversation-center">
+      <div class="result-heading">
+        <h2>Conversation</h2>
+        <button class="btn btn-secondary" id="done-signing" type="button">Done signing</button>
+      </div>
+      <div class="chat-timeline" id="chat-timeline" aria-live="polite" aria-label="Conversation timeline">
+        <div class="empty-state">Conversation messages will appear here</div>
+      </div>
+    </article>
+
+    <article class="panel conversation-person">
+      <div class="result-heading">
+        <h2>Person B (Signs)</h2>
+      </div>
+      <div id="conversation-player"></div>
+
+      <div class="camera-stage video-frame conversation-camera">
+        <video id="conversation-video" autoplay muted playsinline aria-label="Person B live camera feed"></video>
+        <canvas id="conversation-canvas" aria-label="Person B hand landmark overlay"></canvas>
+      </div>
+
+      <div class="status-grid" aria-live="polite">
+        <span class="badge" id="camera-status">Camera off</span>
+        <span class="badge" id="hands-status">Hands detected: no</span>
+      </div>
+
+      <div class="detected-chip-list" id="detected-words" aria-live="polite"></div>
+    </article>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', filename='js/conversation.js') }}"></script>
+{% endblock %}
