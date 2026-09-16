@@ -1,343 +1,195 @@
-from flask import (
-    Flask,
-    render_template,
-    request,
-    jsonify
-)
+"""SignBridge AI - Flask app.
 
-from modules.text_to_sign import (
-    text_to_gloss,
-    gloss_to_english
-)
-
-from modules.avatar_controller import (
-    create_avatar_sequence
-)
-
+Serves the frontend pages and the JSON API described in AGENTS.md.
+Original routes (/text-to-sign, /sign-to-text, /upload) are kept for compatibility.
+"""
 import os
+import uuid
 
+from flask import Flask, jsonify, render_template, request
 
-# ======================================================
-# FLASK APPLICATION
-# ======================================================
+from modules import history
+from modules.avatar_controller import all_signs_json, create_avatar_sequence
+from modules.sign_recognition import FEATURES, SignRecognizer
+from modules.text_to_sign import gloss_to_english, text_to_gloss
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
+SIGN_DIR = os.path.join(BASE_DIR, "static", "signs")
+ALLOWED_EXT = {"mp4", "mov", "avi", "mkv", "webm", "mp3", "wav", "m4a", "ogg"}
+QUESTION_WORDS = {"what", "where", "when", "who", "why", "how", "which"}
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app = Flask(__name__)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024
+recognizer = SignRecognizer()
 
 
 # ======================================================
-# UPLOAD FOLDER
+# HELPERS
 # ======================================================
 
-UPLOAD_FOLDER = "uploads"
-
-os.makedirs(
-    UPLOAD_FOLDER,
-    exist_ok=True
-)
-
-app.config[
-    "UPLOAD_FOLDER"
-] = UPLOAD_FOLDER
-
-
-# ======================================================
-# HOME PAGE
-# ======================================================
-
-@app.route("/")
-def home():
-
-    return render_template(
-        "index.html"
-    )
+def gloss_to_clips(gloss):
+    """One entry per gloss word. url is set only if a sign video exists;
+    otherwise the frontend shows the 3D avatar with the word."""
+    clips = []
+    for word in gloss:
+        name = str(word).lower().replace("-", "_")
+        path = os.path.join(SIGN_DIR, f"{name}.mp4")
+        url = f"/static/signs/{name}.mp4" if os.path.exists(path) else ""
+        clips.append({"word": str(word).upper(), "type": "sign" if url else "avatar", "url": url})
+    return clips
 
 
-# ======================================================
-# TEXT → SIGN
-# ======================================================
-
-@app.route(
-    "/text-to-sign",
-    methods=["POST"]
-)
-def text_to_sign():
-
-    try:
-
-        data = request.get_json()
+def translate(text, language="en"):
+    gloss = text_to_gloss(text, language)
+    return {"gloss": gloss, "clips": gloss_to_clips(gloss), "avatar": create_avatar_sequence(gloss)}
 
 
-        # Get text
-
-        text = data.get(
-            "text",
-            ""
-        )
-
-
-        # Get language
-
-        language = data.get(
-            "language",
-            "en"
-        )
-
-
-        # Check empty input
-
-        if not text:
-
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "Please enter some text."
-
-            })
-
-
-        # ----------------------------------------------
-        # TEXT → ISL GLOSS
-        # ----------------------------------------------
-
-        gloss = text_to_gloss(
-            text,
-            language
-        )
-
-
-        # ----------------------------------------------
-        # GLOSS → AVATAR SEQUENCE
-        # ----------------------------------------------
-
-        avatar_sequence = (
-            create_avatar_sequence(
-                gloss
-            )
-        )
-
-
-        # ----------------------------------------------
-        # SEND RESPONSE
-        # ----------------------------------------------
-
-        return jsonify({
-
-            "success": True,
-
-            "text": text,
-
-            "gloss": gloss,
-
-            "avatar": avatar_sequence
-
-        })
-
-
-    except Exception as error:
-
-        print(
-            "Text-to-sign error:",
-            error
-        )
-
-
-        return jsonify({
-
-            "success": False,
-
-            "message":
-                "An error occurred while processing the text."
-
-        }), 500
+def words_to_sentence(words):
+    cleaned = []
+    for w in words:
+        w = str(w).lower().replace("-", " ").replace("_", " ").strip()
+        if w and (not cleaned or cleaned[-1] != w):
+            cleaned.append(w)
+    if not cleaned:
+        return ""
+    if len(cleaned) > 1 and cleaned[-1] in QUESTION_WORDS:
+        sentence = f"{cleaned[-1]} is the {' '.join(cleaned[:-1])}?"
+    else:
+        sentence = " ".join(cleaned) + "."
+    return sentence[0].upper() + sentence[1:]
 
 
 # ======================================================
-# SIGN → TEXT
+# PAGES
 # ======================================================
 
-@app.route(
-    "/sign-to-text",
-    methods=["POST"]
-)
-def sign_to_text():
-
-    try:
-
-        data = request.get_json()
-
-
-        gloss = data.get(
-            "gloss",
-            []
-        )
-
-
-        if not gloss:
-
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "No sign detected."
-
-            })
-
-
-        # ----------------------------------------------
-        # GLOSS → ENGLISH
-        # ----------------------------------------------
-
-        english = gloss_to_english(
-            gloss
-        )
-
-
-        return jsonify({
-
-            "success": True,
-
-            "gloss": gloss,
-
-            "text": english
-
-        })
-
-
-    except Exception as error:
-
-        print(
-            "Sign-to-text error:",
-            error
-        )
-
-
-        return jsonify({
-
-            "success": False,
-
-            "message":
-                "Could not process sign."
-
-        }), 500
+PAGES = {
+    "/": "index.html",
+    "/media": "media.html",
+    "/speech-to-sign": "speech_to_sign.html",
+    "/sign-to-speech": "sign_to_speech.html",
+    "/conversation": "conversation.html",
+    "/history": "history.html",
+    "/settings": "settings.html",
+}
+for route, template in PAGES.items():
+    app.add_url_rule(route, template, lambda t=template: render_template(t))
 
 
 # ======================================================
-# FILE UPLOAD
+# API (used by the frontend, see AGENTS.md)
 # ======================================================
 
-@app.route(
-    "/upload",
-    methods=["POST"]
-)
-def upload_file():
-
-    try:
-
-        # Check whether file exists
-
-        if "file" not in request.files:
-
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "No file uploaded."
-
-            })
+@app.get("/api/health")
+def api_health():
+    return jsonify({"status": "ok", "sign_model_loaded": recognizer.ready})
 
 
-        file = request.files[
-            "file"
-        ]
-
-
-        # Check filename
-
-        if file.filename == "":
-
-            return jsonify({
-
-                "success": False,
-
-                "message":
-                    "No file selected."
-
-            })
-
-
-        # Create filepath
-
-        filepath = os.path.join(
-
-            app.config[
-                "UPLOAD_FOLDER"
-            ],
-
-            file.filename
-
-        )
-
-
-        # Save file
-
-        file.save(
-            filepath
-        )
-
-
-        return jsonify({
-
-            "success": True,
-
-            "filename":
-                file.filename,
-
-            "message":
-                "File uploaded successfully."
-
-        })
-
-
-    except Exception as error:
-
-        print(
-            "Upload error:",
-            error
-        )
-
-
-        return jsonify({
-
-            "success": False,
-
-            "message":
-                "File upload failed."
-
-        }), 500
-
-
-# ======================================================
-# RUN APPLICATION
-# ======================================================
-
-if __name__ == "__main__":
-
-    app.run(
-        debug=True
-    )
-
-from modules.avatar_controller import all_signs_json  # add to your existing import
-
-# ...
-
-# ======================================================
-# SIGN LIBRARY (for the 3D avatar's "Quick Signs" panel)
-# ======================================================
-
-@app.route("/api/signs", methods=["GET"])
+@app.get("/api/signs")
 def api_signs():
     return jsonify(all_signs_json())
+
+
+@app.post("/api/text-to-sign")
+def api_text_to_sign():
+    data = request.get_json(silent=True) or {}
+    text = str(data.get("text", "")).strip()
+    language = data.get("language", "en")
+    if not text:
+        return jsonify({"error": "text is required"}), 400
+    return jsonify({"text": text, "language": language, **translate(text, language)})
+
+
+@app.post("/api/sign/sentence")
+def api_sign_sentence():
+    words = (request.get_json(silent=True) or {}).get("words", [])
+    return jsonify({"text": words_to_sentence(words)})
+
+
+@app.post("/api/sign/predict")
+def api_sign_predict():
+    if not recognizer.ready:
+        return jsonify({"error": "Sign model not trained yet"}), 503
+    frames = (request.get_json(silent=True) or {}).get("landmarks")
+    if not frames or any(len(f) != FEATURES for f in frames):
+        return jsonify({"error": f"landmarks must be frames of {FEATURES} numbers"}), 400
+    word, confidence = recognizer.predict(frames)
+    return jsonify({"word": word.upper(), "confidence": round(confidence, 3)})
+
+
+@app.post("/api/media/upload")
+def api_media_upload():
+    file = request.files.get("file")
+    language = request.form.get("language", "en")
+    if not file or "." not in file.filename:
+        return jsonify({"error": "file is required"}), 400
+    ext = file.filename.rsplit(".", 1)[1].lower()
+    if ext not in ALLOWED_EXT:
+        return jsonify({"error": f"unsupported file type .{ext}"}), 400
+    try:
+        from modules.audio_processing import transcribe
+    except ImportError:
+        return jsonify({"error": "Media transcription is not installed. Run: pip install -r requirements-ml.txt"}), 501
+
+    path = os.path.join(UPLOAD_FOLDER, f"{uuid.uuid4().hex}.{ext}")
+    file.save(path)
+    try:
+        transcript, segments = transcribe(path, language)
+    except Exception as error:
+        return jsonify({"error": f"Transcription failed: {error}"}), 500
+    finally:
+        if os.path.exists(path):
+            os.remove(path)
+
+    for seg in segments:
+        seg.update(translate(seg["text"], "en"))
+    return jsonify({"transcript": transcript, "segments": segments, **translate(transcript, "en")})
+
+
+@app.route("/api/history", methods=["GET", "POST", "DELETE"])
+def api_history():
+    if request.method == "POST":
+        return jsonify(history.add_entry(request.get_json(silent=True) or {})), 201
+    if request.method == "DELETE":
+        history.clear()
+        return jsonify({"status": "ok"})
+    return jsonify(list(reversed(history.list_entries())))
+
+
+# ======================================================
+# ORIGINAL ROUTES (kept for compatibility)
+# ======================================================
+
+@app.post("/text-to-sign")
+def text_to_sign():
+    data = request.get_json(silent=True) or {}
+    text = data.get("text", "")
+    if not text:
+        return jsonify({"success": False, "message": "Please enter some text."})
+    result = translate(text, data.get("language", "en"))
+    return jsonify({"success": True, "text": text, "gloss": result["gloss"], "avatar": result["avatar"]})
+
+
+@app.post("/sign-to-text")
+def sign_to_text():
+    gloss = (request.get_json(silent=True) or {}).get("gloss", [])
+    if not gloss:
+        return jsonify({"success": False, "message": "No sign detected."})
+    return jsonify({"success": True, "gloss": gloss, "text": gloss_to_english(gloss)})
+
+
+@app.post("/upload")
+def upload_file():
+    file = request.files.get("file")
+    if not file or file.filename == "":
+        return jsonify({"success": False, "message": "No file uploaded."})
+    file.save(os.path.join(UPLOAD_FOLDER, os.path.basename(file.filename)))
+    return jsonify({"success": True, "filename": file.filename, "message": "File uploaded successfully."})
+
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)

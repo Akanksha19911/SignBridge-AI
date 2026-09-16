@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Live Sign Interpreter - SignBridge AI{% endblock %}
+{% block page_kicker %}Live Sign Interpreter{% endblock %}
+{% block page_heading %}Speech to ISL{% endblock %}
+{% block page_description %}Speak into the mic. The avatar signs it in order.{% endblock %}
+
+{% block content %}
+  <section class="split speech-layout" aria-label="Speech to sign workspace">
+    <article class="panel speaker-panel">
+      <div class="result-heading">
+        <h2>Speaker</h2>
+      </div>
+
+      <p class="support-message hidden" id="speech-support-message">Please use Google Chrome for live speech</p>
+
+      <div class="mic-stage">
+        <button class="mic-button" id="mic-button" type="button" aria-label="Start microphone">
+          <span class="recording-dot hidden" id="mic-dot" aria-hidden="true"></span>
+          <span id="mic-button-label">Start</span>
+        </button>
+        <div class="audio-bars" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <div class="control-row">
+        <button class="btn btn-secondary" id="pause-button" type="button" disabled>Pause</button>
+        <button class="btn btn-secondary" id="clear-button" type="button">Clear</button>
+      </div>
+
+      <label class="field-label" for="speech-language">Language</label>
+      <select id="speech-language" class="field-control">
+        <option value="en">English</option>
+        <option value="hi">Hindi</option>
+      </select>
+
+      <div class="interim-box" aria-live="polite">
+        <span id="interim-text">Waiting for speech...</span>
+      </div>
+
+      <div class="typed-backup">
+        <label class="field-label" for="typed-sentence">Or type a sentence</label>
+        <textarea id="typed-sentence" class="field-control" rows="3"></textarea>
+        <button class="btn btn-primary" id="send-text" type="button">Send</button>
+      </div>
+
+      <div class="bubble-list" id="sentence-list" aria-live="polite" aria-label="Final sentences"></div>
+    </article>
+
+    <article class="panel avatar-panel">
+      <div class="result-heading">
+        <h2>ISL Avatar</h2>
+      </div>
+      <div id="clip-player"></div>
+    </article>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', filename='js/speech_to_sign.js') }}"></script>
+{% endblock %}

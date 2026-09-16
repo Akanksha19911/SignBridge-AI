@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - SignBridge AI{% endblock %}
+{% block page_kicker %}Settings{% endblock %}
+{% block page_heading %}Settings{% endblock %}
+{% block page_description %}Tune the defaults used across live speech, sign recognition and ISL playback.{% endblock %}
+
+{% block content %}
+  <section class="split settings-layout">
+    <form class="panel settings-form" id="settings-form">
+      <div class="settings-group">
+        <h2>Language</h2>
+        <div class="setting-row">
+          <label class="field-label" for="default-language">Default language</label>
+          <select id="default-language" class="field-control" name="language">
+            <option value="en">English</option>
+            <option value="hi">Hindi</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h2>Appearance</h2>
+        <div class="setting-row">
+          <label class="field-label" for="theme">Theme</label>
+          <select id="theme" class="field-control" name="theme">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label class="toggle-row">
+            <input id="show-gloss-setting" name="showGloss" type="checkbox">
+            <span>Show ISL gloss</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h2>Sign avatar</h2>
+        <div class="setting-row">
+          <label class="range-label" for="clip-speed">
+            <span>Sign clip speed</span>
+            <output id="clip-speed-value">1.0x</output>
+          </label>
+          <input id="clip-speed" class="range-control" name="clipSpeed" type="range" min="0.5" max="2" step="0.1">
+        </div>
+        <div class="setting-row">
+          <label class="range-label" for="confidence-threshold">
+            <span>Sign confidence threshold</span>
+            <output id="confidence-threshold-value">0.80</output>
+          </label>
+          <input id="confidence-threshold" class="range-control" name="confidenceThreshold" type="range" min="0.5" max="0.95" step="0.05">
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h2>Speech</h2>
+        <div class="setting-row">
+          <label class="range-label" for="speech-rate">
+            <span>Speech rate</span>
+            <output id="speech-rate-value">1.0x</output>
+          </label>
+          <input id="speech-rate" class="range-control" name="speechRate" type="range" min="0.5" max="1.5" step="0.1">
+        </div>
+        <div class="setting-row">
+          <label class="field-label" for="voice">Voice</label>
+          <select id="voice" class="field-control" name="voiceURI">
+            <option value="">Default voice</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-save-bar">
+        <button class="btn btn-primary" type="submit">Save</button>
+        <button class="btn btn-secondary" id="reset-settings" type="button">Reset to defaults</button>
+      </div>
+    </form>
+
+    <aside class="panel settings-tests">
+      <div>
+        <h2>Test output</h2>
+        <div class="control-row">
+          <button class="btn btn-secondary" id="test-voice" type="button">Test voice</button>
+          <button class="btn btn-secondary" id="test-avatar" type="button">Test avatar</button>
+        </div>
+      </div>
+      <div id="settings-clip-player"></div>
+
+      <div class="backend-info settings-group">
+        <h2>Backend info</h2>
+        <div class="status-card" id="settings-health" aria-live="polite">
+          <strong>Checking backend</strong>
+          <small>Checking sign model</small>
+        </div>
+      </div>
+    </aside>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', filename='js/settings-page.js') }}"></script>
+{% endblock %}

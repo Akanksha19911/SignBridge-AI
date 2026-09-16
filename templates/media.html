@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Translate Media - SignBridge AI{% endblock %}
+{% block page_kicker %}Translate Media{% endblock %}
+{% block page_heading %}Media to ISL{% endblock %}
+{% block page_description %}Upload a lecture, video or audio and watch it as ISL sign clips.{% endblock %}
+
+{% block content %}
+  <section class="panel media-workspace" aria-labelledby="upload-title">
+    <div class="upload-grid">
+      <div
+        class="upload-zone"
+        id="upload-zone"
+        role="button"
+        tabindex="0"
+        aria-labelledby="upload-title"
+        aria-describedby="upload-help selected-file"
+      >
+        <input
+          id="media-file"
+          class="visually-hidden"
+          type="file"
+          accept=".mp4,.mov,.avi,.mkv,.webm,.mp3,.wav,.m4a,.ogg"
+        >
+        <span class="upload-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 16V4"></path>
+            <path d="m7 9 5-5 5 5"></path>
+            <path d="M20 16.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.5"></path>
+          </svg>
+        </span>
+        <h2 id="upload-title">Drop media here</h2>
+        <p id="upload-help">MP4, MOV, AVI, MKV, WEBM, MP3, WAV, M4A or OGG. Max 200 MB.</p>
+        <button class="btn btn-secondary" id="choose-file" type="button">Choose file</button>
+        <p class="selected-file" id="selected-file">No file selected</p>
+      </div>
+
+      <div class="upload-controls">
+        <label class="field-label" for="language-select">Language</label>
+        <select id="language-select" class="field-control">
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+        </select>
+        <p class="field-note">Hindi audio is translated to English before signing.</p>
+
+        <label class="toggle-row">
+          <input id="show-gloss" type="checkbox">
+          <span>Show ISL gloss</span>
+        </label>
+
+        <button class="btn btn-primary" id="translate-button" type="button" disabled>Translate</button>
+
+        <div class="upload-progress hidden" id="upload-progress" aria-live="polite">
+          <div class="progress-bar" aria-hidden="true">
+            <span id="progress-fill"></span>
+          </div>
+          <p id="progress-label">Uploading 0%</p>
+          <div class="upload-stepper" aria-hidden="true">
+            <span class="active">Uploading</span>
+            <span>Transcribing</span>
+            <span>Translating to ISL</span>
+            <span>Ready</span>
+          </div>
+        </div>
+
+        <div class="processing-state hidden" id="processing-state" aria-live="polite">
+          <span class="spinner" aria-hidden="true"></span>
+          <span>Transcribing... this can take a minute</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="split media-results hidden" id="results-section" aria-label="Translation results">
+    <article class="panel">
+      <div class="result-heading">
+        <h2>Original</h2>
+        <div class="result-actions">
+          <button class="btn btn-secondary" id="copy-transcript" type="button">Copy transcript</button>
+          <button class="btn btn-secondary" id="download-transcript" type="button">Download transcript (.txt)</button>
+          <button class="btn btn-danger" id="new-upload" type="button">New upload</button>
+        </div>
+      </div>
+
+      <div class="media-preview" id="media-preview"></div>
+      <div class="transcript media-transcript" id="transcript" aria-label="Transcript"></div>
+    </article>
+
+    <article class="panel">
+      <div class="result-heading">
+        <h2>ISL Avatar</h2>
+      </div>
+      <div id="clip-player"></div>
+    </article>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script type="module" src="{{ url_for('static', filename='js/media.js') }}"></script>
+{% endblock %}

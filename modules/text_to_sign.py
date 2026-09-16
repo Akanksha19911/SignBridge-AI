@@ -50,6 +50,15 @@ def _normalize(text: str) -> str:
     return text
 
 
+# Small Hindi -> English dictionary so hi-IN speech input still maps to signs.
+HINDI_TO_ENGLISH = {
+    "नमस्ते": "hello", "धन्यवाद": "thank you", "शुक्रिया": "thank you",
+    "कृपया": "please", "हाँ": "yes", "हां": "yes", "नहीं": "no",
+    "कहाँ": "where", "कहां": "where", "मदद": "help", "पानी": "water",
+    "खाना": "food", "डॉक्टर": "doctor", "अलविदा": "goodbye",
+}
+
+
 def text_to_gloss(text: str, language: str = "en"):
     """
     Convert a sentence into a list of ISL-style gloss tokens, e.g.
@@ -59,6 +68,10 @@ def text_to_gloss(text: str, language: str = "en"):
     `language` is accepted for forward-compatibility (e.g. if you later add
     translation before gloss matching); the current matcher is English-only.
     """
+    if language == "hi":
+        text = " ".join(
+            HINDI_TO_ENGLISH.get(w.strip("।?!,."), w) for w in str(text).split()
+        )
     normalized = _normalize(text)
     if not normalized:
         return []
@@ -81,7 +94,10 @@ def text_to_gloss(text: str, language: str = "en"):
         final.append((start, phrase, sign_key))
     final.sort(key=lambda m: m[0])
 
-    gloss = [SIGN_KEY_TO_GLOSS[sign_key] for _, _, sign_key in final]
+    gloss = [
+        SIGN_KEY_TO_GLOSS.get(sign_key, sign_key.upper().replace("_", "-"))
+        for _, _, sign_key in final
+    ]
 
     # Blank out matched spans, then keep any leftover non-stopword tokens
     # so the gloss output still reflects the full sentence.
@@ -94,7 +110,12 @@ def text_to_gloss(text: str, language: str = "en"):
         if word not in STOPWORDS:
             gloss.append(word.upper())
 
-    return gloss
+    # ISL puts question words at the end: "WHERE REGISTRATION-DESK" -> "REGISTRATION-DESK WHERE"
+    questions = [g for g in gloss if g in QUESTION_GLOSS]
+    return [g for g in gloss if g not in QUESTION_GLOSS] + questions
+
+
+QUESTION_GLOSS = {"WHERE", "WHAT", "WHEN", "WHO", "WHY", "HOW", "WHICH"}
 
 
 def gloss_to_english(gloss):

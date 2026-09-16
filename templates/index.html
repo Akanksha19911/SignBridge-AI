@@ -1,373 +1,134 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
+{% block title %}SignBridge AI{% endblock %}
+{% block page_kicker %}Home{% endblock %}
+{% block page_heading %}SignBridge AI{% endblock %}
+{% block page_description %}Breaking Communication Barriers{% endblock %}
 
-    <meta charset="UTF-8">
+{% block content %}
+  <section class="home-hero" aria-labelledby="home-title">
+    <div class="home-hero-copy">
+      <div class="stat-chip-row">
+        <span class="stat-chip">3 AI engines</span>
+        <span class="stat-chip">English + Hindi</span>
+        <span class="stat-chip">Real-time</span>
+      </div>
+      <h1 id="home-title">Breaking Communication <span class="gradient-text">Barriers</span></h1>
+      <p class="page-lede">Real-time translation between Indian Sign Language, speech and text.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/conversation">Start a Conversation</a>
+        <a class="btn btn-secondary" href="/media">Translate Media</a>
+      </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <svg viewBox="0 0 420 340">
+        <defs>
+          <linearGradient id="bridge-gradient" x1="74" x2="346" y1="224" y2="224" gradientUnits="userSpaceOnUse">
+            <stop class="bridge-stop-primary"></stop>
+            <stop class="bridge-stop-accent" offset="1"></stop>
+          </linearGradient>
+        </defs>
+        <path class="bridge-line" d="M74 224 C142 128 274 128 346 224"></path>
+        <path class="speech-shape" d="M72 72h136a34 34 0 0 1 34 34v46a34 34 0 0 1-34 34h-58l-48 38v-38H72a34 34 0 0 1-34-34v-46a34 34 0 0 1 34-34z"></path>
+        <path class="hand-shape" d="M210 238v-76a18 18 0 0 1 36 0v34-58a18 18 0 0 1 36 0v60-42a18 18 0 0 1 36 0v58-24a18 18 0 0 1 36 0v62c0 48-34 78-78 78h-12c-24 0-43-10-58-29l-44-56a17 17 0 0 1 27-21z"></path>
+        <path class="wave-line" d="M70 126h24l16-28 24 56 18-28h30"></path>
+        <path class="wave-line wave-teal" d="M298 104c18 18 18 48 0 66"></path>
+        <path class="wave-line wave-teal" d="M326 82c30 32 30 78 0 110"></path>
+      </svg>
+    </div>
+  </section>
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+  <section class="mode-grid" aria-label="Translation modes">
+    <a class="mode-card card" href="/media">
+      <span class="mode-icon media-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"></path><path d="m10 9 5 3-5 3z"></path></svg>
+      </span>
+      <strong>Translate Media</strong>
+      <p>Upload a lecture, video or audio and watch it in ISL.</p>
+      <span class="flow-line">Media -&gt; Text -&gt; Sign</span>
+      <span class="card-arrow" aria-hidden="true">-&gt;</span>
+    </a>
 
-    <title>SignBridge AI</title>
+    <a class="mode-card card" href="/sign-to-speech">
+      <span class="mode-icon sign-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M7 11v2a5 5 0 0 0 10 0v-2"></path><path d="M12 18v3"></path><path d="M8 21h8"></path><path d="M9 5a3 3 0 0 1 6 0v8a3 3 0 0 1-6 0z"></path></svg>
+      </span>
+      <strong>Live Sign Translator</strong>
+      <p>Sign to the camera. We speak it aloud.</p>
+      <span class="flow-line">Sign -&gt; Text -&gt; Speech</span>
+      <span class="card-arrow" aria-hidden="true">-&gt;</span>
+    </a>
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style.css') }}">
+    <a class="mode-card card" href="/speech-to-sign">
+      <span class="mode-icon speech-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 3v18"></path><path d="M8 7v10"></path><path d="M4 10v4"></path><path d="M16 7v10"></path><path d="M20 10v4"></path></svg>
+      </span>
+      <strong>Live Sign Interpreter</strong>
+      <p>Speak into the mic. The avatar signs it.</p>
+      <span class="flow-line">Speech -&gt; Text -&gt; Sign</span>
+      <span class="card-arrow" aria-hidden="true">-&gt;</span>
+    </a>
 
-</head>
+    <a class="mode-card mode-card-featured card" href="/conversation">
+      <span class="mode-icon conversation-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 10h8"></path><path d="M8 14h5"></path></svg>
+      </span>
+      <strong>Conversation Mode</strong>
+      <p>Two people, two languages, one conversation.</p>
+      <span class="flow-line">Speech + Sign -&gt; Shared understanding</span>
+      <span class="card-arrow" aria-hidden="true">-&gt;</span>
+    </a>
+  </section>
 
-
-<body>
-
-<header>
-
-    <div class="logo">
-        🤟 SignBridge AI
+  <section class="how-row" aria-labelledby="how-title">
+    <div class="section-heading">
+      <p class="eyebrow">How it works</p>
+      <h2 id="how-title">Three calm steps from input to understanding</h2>
     </div>
 
-    <p>
-        Breaking communication barriers with AI
-    </p>
+    <div class="steps-row">
+      <div class="step-card">
+        <span>1</span>
+        <strong>Capture</strong>
+        <p>Upload, speak, or sign naturally.</p>
+      </div>
+      <div class="step-card">
+        <span>2</span>
+        <strong>Translate</strong>
+        <p>AI creates text, gloss and timing.</p>
+      </div>
+      <div class="step-card">
+        <span>3</span>
+        <strong>Share</strong>
+        <p>Avatar signs or speech plays back.</p>
+      </div>
+    </div>
 
-</header>
-
-
-<main>
-
-    <!-- =====================================
-         HERO SECTION
-    ====================================== -->
-
-    <section class="hero">
-
-        <div>
-
-            <h1>
-                Communication Without Barriers
-            </h1>
-
-            <p>
-                SignBridge AI connects speech, text and
-                Indian Sign Language using artificial intelligence.
-            </p>
-
+    <div class="diagram-grid">
+      <div class="diagram-hub">SIGNBRIDGE AI</div>
+      <div class="diagram-branches" aria-label="SignBridge AI translation engine paths">
+        <div class="diagram-path">
+          <span>Upload Audio/Video</span>
+          <b aria-hidden="true">-&gt;</b>
+          <strong>AI Text</strong>
+          <b aria-hidden="true">-&gt;</b>
+          <span>Avatar</span>
         </div>
-
-    </section>
-
-
-    <!-- =====================================
-         FEATURE 1
-         MEDIA → SIGN
-    ====================================== -->
-
-    <section class="card">
-
-        <h2>
-            📁 Media → Sign Language
-        </h2>
-
-        <p>
-            Upload an audio/video file and convert
-            the spoken content into ISL-style signs.
-        </p>
-
-
-        <input
-            type="file"
-            id="mediaFile"
-            accept="audio/*,video/*"
-        >
-
-
-        <button onclick="uploadMedia()">
-            Upload & Process
-        </button>
-
-
-        <div id="mediaResult"
-             class="result">
-
+        <div class="diagram-path">
+          <span>Sign (Live Camera)</span>
+          <b aria-hidden="true">-&gt;</b>
+          <strong>AI Text</strong>
+          <b aria-hidden="true">-&gt;</b>
+          <span>Speech</span>
         </div>
-
-    </section>
-
-
-    <!-- =====================================
-         FEATURE 2
-         SIGN → SPEECH
-    ====================================== -->
-
-    <section class="card">
-
-        <h2>
-            🤟 Live Sign → Speech
-        </h2>
-
-        <p>
-            Use your camera to demonstrate signs.
-            The recognized sign can then be converted
-            into speech.
-        </p>
-
-
-        <video
-            id="camera"
-            autoplay
-            playsinline>
-        </video>
-
-
-        <div>
-
-            <button onclick="startCamera()">
-                Start Camera
-            </button>
-
-
-            <button onclick="stopCamera()">
-                Stop Camera
-            </button>
-
+        <div class="diagram-path">
+          <span>Speech (Live)</span>
+          <b aria-hidden="true">-&gt;</b>
+          <strong>AI Text</strong>
+          <b aria-hidden="true">-&gt;</b>
+          <span>Avatar</span>
         </div>
-
-
-        <div class="demo-sign">
-
-            <p>
-                Detected Sign
-            </p>
-
-            <div id="detectedSign">
-                Waiting for sign...
-            </div>
-
-        </div>
-
-
-        <button onclick="speakDetectedSign()">
-            🔊 Speak
-        </button>
-
-    </section>
-
-
-    <!-- =====================================
-         FEATURE 3
-         SPEECH → SIGN
-    ====================================== -->
-
-    <section class="card">
-
-        <h2>
-            🎤 Live Speech → Sign Language
-        </h2>
-
-        <p>
-            Speak into your microphone and convert
-            your speech into ISL-style glosses.
-        </p>
-
-
-        <!-- SPEECH RECOGNITION -->
-
-        <button onclick="startSpeechRecognition()">
-            🎤 Start Speaking
-        </button>
-
-
-        <div class="input-area">
-
-            <label>
-                Recognized Speech
-            </label>
-
-            <textarea
-                id="speechText"
-                placeholder="Your speech will appear here...">
-            </textarea>
-
-        </div>
-
-
-        <!-- LANGUAGE -->
-
-        <select id="language">
-
-            <option value="en">
-                English
-            </option>
-
-            <option value="hi">
-                Hindi
-            </option>
-
-        </select>
-
-
-        <!-- CONVERT -->
-
-        <button onclick="convertSpeechToSign()">
-            🤟 Convert to Sign
-        </button>
-
-
-        <!-- ISL GLOSS -->
-
-        <div class="result">
-
-            <h3>
-                ISL Gloss
-            </h3>
-
-            <div id="glossOutput">
-                -
-            </div>
-
-        </div>
-
-
-        <!-- =====================================
-             3D AVATAR
-        ====================================== -->
-
-        <section class="avatar-section">
-
-            <div class="avatar-title">
-
-                <h2>
-                    🤟 SignBridge AI Avatar
-                </h2>
-
-                <p>
-                    AI-powered Indian Sign Language Avatar
-                </p>
-
-            </div>
-
-
-            <div
-                id="avatar3d-container"
-                class="avatar3d-container">
-            </div>
-
-
-            <div class="avatar-status">
-
-                <span>
-                    Sign:
-                </span>
-
-                <strong id="currentSign">
-                    READY
-                </strong>
-
-
-                <span>
-                    Expression:
-                </span>
-
-                <strong id="currentExpression">
-                    NEUTRAL
-                </strong>
-
-            </div>
-
-        </section>
-
-
-    </section>
-
-
-    <!-- =====================================
-         ABOUT
-    ====================================== -->
-
-    <section class="about">
-
-        <h2>
-            Why SignBridge AI?
-        </h2>
-
-
-        <div class="features">
-
-            <div>
-
-                <h3>
-                    🌍 Accessibility
-                </h3>
-
-                <p>
-                    Helps bridge communication between
-                    sign-language users and non-signers.
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-                    🤖 AI Powered
-                </h3>
-
-                <p>
-                    Uses AI-based language processing
-                    to transform communication formats.
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-                    🇮🇳 ISL Focused
-                </h3>
-
-                <p>
-                    Designed around Indian Sign Language
-                    for local accessibility needs.
-                </p>
-
-            </div>
-
-        </div>
-
-    </section>
-
-</main>
-
-
-<!-- =====================================
-     FOOTER
-====================================== -->
-
-<footer>
-
-    <p>
-        SignBridge AI © 2026
-    </p>
-
-    <p>
-        AI for Inclusive Communication
-    </p>
-
-</footer>
-
-
-<!-- =====================================
-     JAVASCRIPT
-====================================== -->
-
-<!--
-    IMPORTANT:
-    script.js is loaded only ONCE.
-
-    It should import avatar3d.js internally.
--->
-
-<script
-    type="module"
-    src="{{ url_for('static', filename='js/script.js') }}">
-</script>
+      </div>
+    </div>
+  </section>
+{% endblock %}

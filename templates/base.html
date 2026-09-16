@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}SignBridge AI{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%234F46E5'/%3E%3Cpath d='M15 29c5-8 13-8 18 0M13 22h7c2 0 3 1 3 3v9M35 22h-7c-2 0-3 1-3 3v9M12 33h24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  </head>
+  <body>
+    {% set current_path = request.path if request is defined else '/' %}
+    <div class="app-shell">
+      <input class="nav-toggle" type="checkbox" id="nav-toggle" aria-label="Toggle navigation">
+      <label class="drawer-overlay" for="nav-toggle" aria-label="Close navigation"></label>
+      <aside class="sidebar" aria-label="Primary navigation">
+        <div class="sidebar-header">
+          <a class="brand" href="/">
+            <span class="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 48 48">
+                <path d="M15 29c5-8 13-8 18 0"></path>
+                <path d="M13 22h7c2 0 3 1 3 3v9"></path>
+                <path d="M35 22h-7c-2 0-3 1-3 3v9"></path>
+                <path d="M12 33h24"></path>
+              </svg>
+            </span>
+            <span>
+              <strong>SignBridge AI</strong>
+              <small>Breaking Communication Barriers</small>
+            </span>
+          </a>
+          <label class="btn btn-icon mobile-nav-close drawer-button" for="nav-toggle" role="button" tabindex="0" aria-label="Close navigation">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12"></path>
+            </svg>
+          </label>
+        </div>
+
+        <nav class="nav-list">
+          <a class="nav-link {{ 'active' if current_path == '/' else '' }}" href="/">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path></svg>
+            </span>
+            <span>
+              <strong>Home</strong>
+            </span>
+          </a>
+
+          <div class="nav-section-label">Translate</div>
+
+          <a class="nav-link {{ 'active' if current_path == '/media' else '' }}" href="/media">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"></path><path d="m10 9 5 3-5 3z"></path></svg>
+            </span>
+            <span>
+              <strong>Translate Media</strong>
+              <small>Video / Audio -&gt; Sign</small>
+            </span>
+          </a>
+          <a class="nav-link {{ 'active' if current_path == '/sign-to-speech' else '' }}" href="/sign-to-speech">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M7 11v2a5 5 0 0 0 10 0v-2"></path><path d="M12 18v3"></path><path d="M8 21h8"></path><path d="M9 5a3 3 0 0 1 6 0v8a3 3 0 0 1-6 0z"></path></svg>
+            </span>
+            <span>
+              <strong>Live Sign Translator</strong>
+              <small>Sign -&gt; Text -&gt; Speech</small>
+            </span>
+          </a>
+          <a class="nav-link {{ 'active' if current_path == '/speech-to-sign' else '' }}" href="/speech-to-sign">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3v18"></path><path d="M8 7v10"></path><path d="M4 10v4"></path><path d="M16 7v10"></path><path d="M20 10v4"></path></svg>
+            </span>
+            <span>
+              <strong>Live Sign Interpreter</strong>
+              <small>Speech -&gt; Text -&gt; Sign</small>
+            </span>
+          </a>
+          <a class="nav-link {{ 'active' if current_path == '/conversation' else '' }}" href="/conversation">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 10h8"></path><path d="M8 14h5"></path></svg>
+            </span>
+            <span>
+              <strong>Conversation Mode</strong>
+              <small>Two-Way Communication</small>
+            </span>
+          </a>
+
+          <div class="nav-section-label">More</div>
+
+          <a class="nav-link {{ 'active' if current_path == '/history' else '' }}" href="/history">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v6h6"></path><path d="M12 7v5l3 2"></path></svg>
+            </span>
+            <span>
+              <strong>History</strong>
+            </span>
+          </a>
+          <a class="nav-link {{ 'active' if current_path == '/settings' else '' }}" href="/settings">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8a3.5 3.5 0 0 0 0 7.5z"></path><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9L4.2 7A2 2 0 1 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 .9-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5.9h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+            </span>
+            <span>
+              <strong>Settings</strong>
+            </span>
+          </a>
+        </nav>
+
+        <footer class="sidebar-footer">
+          <div class="status-pill" id="backend-status" aria-live="polite">
+            <span class="status-dot pending" aria-hidden="true"></span>
+            <span>
+              <strong>Checking backend</strong>
+              <small>Checking sign model</small>
+            </span>
+          </div>
+        </footer>
+      </aside>
+
+      <div class="mobile-topbar">
+        <label class="btn btn-icon drawer-button" for="nav-toggle" role="button" tabindex="0" aria-label="Open navigation">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path>
+          </svg>
+        </label>
+        <a class="mobile-brand" href="/">SignBridge AI</a>
+      </div>
+
+      <main class="main-content" id="main-content">
+        <header class="app-topbar">
+          <div class="app-topbar-copy">
+            <p class="eyebrow">{% block page_kicker %}SignBridge AI{% endblock %}</p>
+            <h1>{% block page_heading %}SignBridge AI{% endblock %}</h1>
+            <p class="page-lede">{% block page_description %}Real-time translation between Indian Sign Language, speech and text.{% endblock %}</p>
+          </div>
+          <div class="app-topbar-actions">
+            {% block page_actions %}{% endblock %}
+            <button class="btn btn-icon theme-toggle" id="theme-toggle" type="button" aria-label="Toggle theme">
+              <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 4V2"></path><path d="M12 22v-2"></path><path d="m17.66 6.34 1.41-1.41"></path><path d="m4.93 19.07 1.41-1.41"></path><path d="M20 12h2"></path><path d="M2 12h2"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="m4.93 4.93 1.41 1.41"></path><circle cx="12" cy="12" r="4"></circle>
+              </svg>
+              <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 7 7 0 1 0 20.5 14.5z"></path>
+              </svg>
+            </button>
+          </div>
+        </header>
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+
+    <div id="toast" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <script type="module">
+      import { health } from "{{ url_for('static', filename='js/api.js') }}";
+      import { getSettings, saveSettings } from "{{ url_for('static', filename='js/settings.js') }}";
+      import { showToast } from "{{ url_for('static', filename='js/ui.js') }}";
+
+      const statusEl = document.querySelector("#backend-status");
+      const themeToggle = document.querySelector("#theme-toggle");
+
+      function renderStatus(backendOnline, modelReady) {
+        const dot = statusEl.querySelector(".status-dot");
+        dot.className = `status-dot ${backendOnline ? "online" : "offline"}`;
+        statusEl.querySelector("strong").textContent = backendOnline ? "Backend online" : "Backend offline";
+        statusEl.querySelector("small").textContent = modelReady ? "Sign model ready" : "Sign model not trained";
+      }
+
+      health()
+        .then((data) => renderStatus(data.status === "ok" || data.status === "online", Boolean(data.sign_model_loaded)))
+        .catch((error) => {
+          renderStatus(false, false);
+          showToast(error.message || "Backend is offline", "warning");
+        });
+
+      themeToggle.addEventListener("click", () => {
+        const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        saveSettings({ theme: nextTheme });
+        const themeSelect = document.querySelector("#theme");
+        if (themeSelect) {
+          themeSelect.value = nextTheme;
+        }
+      });
+
+      document.querySelectorAll(".drawer-button").forEach((button) => {
+        button.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            button.click();
+          }
+        });
+      });
+
+      document.documentElement.dataset.theme = getSettings().theme;
+    </script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

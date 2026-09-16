@@ -1,0 +1,4 @@
+# Optional: media transcription and sign-model training
+faster-whisper
+opencv-python
+mediapipe==0.10.14
