@@ -1,75 +1,88 @@
+# ============================================================
+# SIGNBRIDGE AI - AVATAR CONTROLLER
+# ============================================================
+
+SIGN_LIBRARY = {
+
+    "hello": {
+        "label": "hello",
+        "gloss": "HELLO",
+        "animation": "HELLO",
+        "expression": "happy"
+    },
+
+    "thank_you": {
+        "label": "thank you",
+        "gloss": "THANK-YOU",
+        "animation": "THANK_YOU",
+        "expression": "happy"
+    },
+
+    "please": {
+        "label": "please",
+        "gloss": "PLEASE",
+        "animation": "PLEASE",
+        "expression": "neutral"
+    },
+
+    "yes": {
+        "label": "yes",
+        "gloss": "YES",
+        "animation": "YES",
+        "expression": "happy"
+    },
+
+    "no": {
+        "label": "no",
+        "gloss": "NO",
+        "animation": "NO",
+        "expression": "neutral"
+    },
+
+    "where": {
+        "label": "where",
+        "gloss": "WHERE",
+        "animation": "WHERE",
+        "expression": "thinking"
+    }
+}
+
+
+SIGN_KEY_TO_GLOSS = {
+    key: value["gloss"]
+    for key, value in SIGN_LIBRARY.items()
+}
+
+
+GLOSS_TO_SIGN_KEY = {
+    value["gloss"]: key
+    for key, value in SIGN_LIBRARY.items()
+}
+
+
 SIGN_ANIMATIONS = {
-
     "HELLO": "HELLO",
-
-    "THANK_YOU": "THANK_YOU",
-
+    "THANK-YOU": "THANK_YOU",
     "PLEASE": "PLEASE",
-
     "YES": "YES",
-
     "NO": "NO",
-
-    "WHERE": "WHERE",
-
-    "HELP": "HELP",
-
-    "MORE": "MORE",
-
-    "FOOD": "FOOD",
-
-    "WATER": "WATER",
-
-    "AIRPORT": "AIRPORT",
-
-    "REGISTRATION": "REGISTRATION",
-
-    "DESK": "DESK",
-
-    "GOODBYE": "GOODBYE"
+    "WHERE": "WHERE"
 }
 
 
 def get_expression(gloss):
 
-    gloss = gloss.upper()
+    gloss = str(gloss).upper()
 
-
-    if gloss in [
-        "WHERE",
-        "WHAT",
-        "WHY",
-        "WHO",
-        "WHEN",
-        "HOW"
-    ]:
-
+    if gloss == "WHERE":
         return "thinking"
-
 
     if gloss in [
         "HELLO",
-        "GOODBYE",
-        "THANK_YOU"
+        "THANK-YOU",
+        "YES"
     ]:
-
         return "happy"
-
-
-    if gloss == "HELP":
-
-        return "concerned"
-
-
-    if gloss == "YES":
-
-        return "happy"
-
-
-    if gloss == "NO":
-
-        return "neutral"
-
 
     return "neutral"
 
@@ -78,127 +91,17 @@ def create_avatar_sequence(gloss):
 
     sequence = []
 
-
     for word in gloss:
 
-        word = word.upper()
+        word = str(word).upper()
 
-
-        if word in SIGN_ANIMATIONS:
-
-            sequence.append({
-
-                "gloss": word,
-
-                "animation":
-                    SIGN_ANIMATIONS[word],
-
-                "expression":
-                    get_expression(word)
-
-            })
-
-
-    return sequence
-SIGN_ANIMATIONS = {
-
-    "HELLO": "HELLO",
-
-    "THANK_YOU": "THANK_YOU",
-
-    "PLEASE": "PLEASE",
-
-    "YES": "YES",
-
-    "NO": "NO",
-
-    "WHERE": "WHERE",
-
-    "HELP": "HELP",
-
-    "MORE": "MORE",
-
-    "FOOD": "FOOD",
-
-    "WATER": "WATER",
-
-    "AIRPORT": "AIRPORT",
-
-    "REGISTRATION": "REGISTRATION",
-
-    "DESK": "DESK",
-
-    "GOODBYE": "GOODBYE"
-}
-
-
-def get_expression(gloss):
-
-    gloss = gloss.upper()
-
-
-    if gloss in [
-        "WHERE",
-        "WHAT",
-        "WHY",
-        "WHO",
-        "WHEN",
-        "HOW"
-    ]:
-
-        return "thinking"
-
-
-    if gloss in [
-        "HELLO",
-        "GOODBYE",
-        "THANK_YOU"
-    ]:
-
-        return "happy"
-
-
-    if gloss == "HELP":
-
-        return "concerned"
-
-
-    if gloss == "YES":
-
-        return "happy"
-
-
-    if gloss == "NO":
-
-        return "neutral"
-
-
-    return "neutral"
-
-
-def create_avatar_sequence(gloss):
-
-    sequence = []
-
-
-    for word in gloss:
-
-        word = word.upper()
-
-
-        if word in SIGN_ANIMATIONS:
-
-            sequence.append({
-
-                "gloss": word,
-
-                "animation":
-                    SIGN_ANIMATIONS[word],
-
-                "expression":
-                    get_expression(word)
-
-            })
-
+        sequence.append({
+            "gloss": word,
+            "animation": SIGN_ANIMATIONS.get(
+                word,
+                "IDLE"
+            ),
+            "expression": get_expression(word)
+        })
 
     return sequence

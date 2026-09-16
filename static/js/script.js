@@ -1,14 +1,24 @@
-// ============================================
-// SIGNBRIDGE AI JAVASCRIPT
-// ============================================
+// ============================================================
+// SIGNBRIDGE AI
+// script.js
+// ============================================================
 
 import { playSignSequence } from "./avatar3d.js";
 
 
-// ============================================
+// ============================================================
+// GLOBAL VARIABLES
+// ============================================================
+
+let cameraStream = null;
+let recognition = null;
+let isListening = false;
+
+
+// ============================================================
 // FEATURE 1
 // MEDIA → SIGN
-// ============================================
+// ============================================================
 
 async function uploadMedia() {
 
@@ -17,6 +27,26 @@ async function uploadMedia() {
 
     const result =
         document.getElementById("mediaResult");
+
+
+    if (!fileInput) {
+
+        console.error(
+            "mediaFile element not found."
+        );
+
+        return;
+    }
+
+
+    if (!result) {
+
+        console.error(
+            "mediaResult element not found."
+        );
+
+        return;
+    }
 
 
     if (!fileInput.files.length) {
@@ -28,12 +58,17 @@ async function uploadMedia() {
     }
 
 
+    const file =
+        fileInput.files[0];
+
+
     const formData =
         new FormData();
 
+
     formData.append(
         "file",
-        fileInput.files[0]
+        file
     );
 
 
@@ -53,8 +88,23 @@ async function uploadMedia() {
             );
 
 
+        if (!response.ok) {
+
+            throw new Error(
+                "Server returned " +
+                response.status
+            );
+        }
+
+
         const data =
             await response.json();
+
+
+        console.log(
+            "Upload response:",
+            data
+        );
 
 
         if (data.success) {
@@ -71,42 +121,77 @@ async function uploadMedia() {
         } else {
 
             result.innerHTML =
-                "❌ " + data.message;
-
+                "❌ " +
+                (
+                    data.message ||
+                    "Upload failed."
+                );
         }
+
 
     } catch (error) {
 
+        console.error(
+            "Upload error:",
+            error
+        );
+
+
         result.innerHTML =
-            "❌ Upload failed.";
-
-        console.error(error);
-
+            "❌ Could not upload the file.";
     }
-
 }
 
 
-// ============================================
+// ============================================================
 // FEATURE 2
 // CAMERA
-// ============================================
-
-let cameraStream = null;
-
+// ============================================================
 
 async function startCamera() {
 
     const video =
-        document.getElementById("camera");
+        document.getElementById(
+            "camera"
+        );
+
+
+    const detectedSign =
+        document.getElementById(
+            "detectedSign"
+        );
+
+
+    if (!video) {
+
+        console.error(
+            "Camera video element not found."
+        );
+
+        return;
+    }
 
 
     try {
 
+        // Stop an existing stream
+        if (cameraStream) {
+
+            cameraStream
+                .getTracks()
+                .forEach(
+                    track =>
+                        track.stop()
+                );
+        }
+
+
         cameraStream =
             await navigator.mediaDevices
                 .getUserMedia({
-                    video: true,
+                    video: {
+                        facingMode: "user"
+                    },
                     audio: false
                 });
 
@@ -115,24 +200,36 @@ async function startCamera() {
             cameraStream;
 
 
-        document.getElementById(
-            "detectedSign"
-        ).innerText =
-            "Camera active — waiting for AI sign detection...";
+        if (detectedSign) {
+
+            detectedSign.innerText =
+                "Camera active — waiting for AI sign detection...";
+        }
+
+
+        console.log(
+            "Camera started."
+        );
 
 
     } catch (error) {
 
-        alert(
-            "Camera permission was denied or unavailable."
+        console.error(
+            "Camera error:",
+            error
         );
 
-        console.error(error);
 
+        alert(
+            "Camera permission was denied or the camera is unavailable."
+        );
     }
-
 }
 
+
+// ============================================================
+// STOP CAMERA
+// ============================================================
 
 function stopCamera() {
 
@@ -141,45 +238,80 @@ function stopCamera() {
         cameraStream
             .getTracks()
             .forEach(
-                track => track.stop()
+                track =>
+                    track.stop()
             );
 
 
-        cameraStream = null;
-
-
-        document.getElementById(
-            "camera"
-        ).srcObject = null;
-
-
-        document.getElementById(
-            "detectedSign"
-        ).innerText =
-            "Camera stopped.";
-
+        cameraStream =
+            null;
     }
 
+
+    const video =
+        document.getElementById(
+            "camera"
+        );
+
+
+    if (video) {
+
+        video.srcObject =
+            null;
+    }
+
+
+    const detectedSign =
+        document.getElementById(
+            "detectedSign"
+        );
+
+
+    if (detectedSign) {
+
+        detectedSign.innerText =
+            "Camera stopped.";
+    }
+
+
+    console.log(
+        "Camera stopped."
+    );
 }
 
 
-// ============================================
+// ============================================================
 // SIGN → SPEECH
-// ============================================
+// ============================================================
 
 function speakDetectedSign() {
 
-    const text =
+    const detectedElement =
         document.getElementById(
             "detectedSign"
-        ).innerText;
+        );
+
+
+    if (!detectedElement) {
+
+        console.error(
+            "detectedSign element not found."
+        );
+
+        return;
+    }
+
+
+    const text =
+        detectedElement.innerText.trim();
 
 
     if (
         !text ||
         text.includes("Waiting") ||
         text.includes("Camera active") ||
-        text.includes("Camera stopped")
+        text.includes("Camera stopped") ||
+        text.includes("No sign")
     ) {
 
         alert(
@@ -190,24 +322,58 @@ function speakDetectedSign() {
     }
 
 
+    if (
+        !("speechSynthesis" in window)
+    ) {
+
+        alert(
+            "Text-to-speech is not supported in this browser."
+        );
+
+        return;
+    }
+
+
+    window.speechSynthesis.cancel();
+
+
     const speech =
-        new SpeechSynthesisUtterance(text);
+        new SpeechSynthesisUtterance(
+            text
+        );
+
+
+    speech.lang =
+        "en-IN";
+
+
+    speech.rate =
+        0.9;
+
+
+    speech.pitch =
+        1;
+
+
+    speech.volume =
+        1;
 
 
     window.speechSynthesis.speak(
         speech
     );
 
+
+    console.log(
+        "Speaking:",
+        text
+    );
 }
 
 
-// ============================================
-// FEATURE 3
-// SPEECH → TEXT
-// ============================================
-
-let recognition = null;
-
+// ============================================================
+// SPEECH RECOGNITION
+// ============================================================
 
 function startSpeechRecognition() {
 
@@ -226,22 +392,52 @@ function startSpeechRecognition() {
     }
 
 
+    // Prevent duplicate sessions
+    if (isListening) {
+
+        console.log(
+            "Speech recognition is already running."
+        );
+
+        return;
+    }
+
+
     recognition =
         new SpeechRecognition();
 
 
-    recognition.continuous = false;
+    recognition.continuous =
+        false;
 
-    recognition.interimResults = false;
+
+    recognition.interimResults =
+        false;
 
 
-    const language =
+    recognition.maxAlternatives =
+        1;
+
+
+    // ========================================================
+    // LANGUAGE
+    // ========================================================
+
+    const languageElement =
         document.getElementById(
             "language"
-        ).value;
+        );
 
 
-    if (language === "hi") {
+    const selectedLanguage =
+        languageElement
+            ? languageElement.value
+            : "en";
+
+
+    if (
+        selectedLanguage === "hi"
+    ) {
 
         recognition.lang =
             "hi-IN";
@@ -250,78 +446,309 @@ function startSpeechRecognition() {
 
         recognition.lang =
             "en-IN";
-
     }
 
+
+    // ========================================================
+    // START
+    // ========================================================
 
     recognition.onstart =
         function () {
 
-            document.getElementById(
-                "speechText"
-            ).value =
-                "🎤 Listening...";
+            isListening =
+                true;
 
+
+            const speechText =
+                document.getElementById(
+                    "speechText"
+                );
+
+
+            if (speechText) {
+
+                speechText.value =
+                    "Listening...";
+            }
+
+
+            console.log(
+                "🎤 Speech recognition started."
+            );
         };
 
+
+    // ========================================================
+    // RESULT
+    // ========================================================
 
     recognition.onresult =
         function (event) {
 
-            const transcript =
-                event.results[0][0].transcript;
+            let transcript =
+                "";
 
 
-            document.getElementById(
-                "speechText"
-            ).value =
-                transcript;
+            for (
+                let i = event.resultIndex;
+                i < event.results.length;
+                i++
+            ) {
 
+                if (
+                    event.results[i].isFinal
+                ) {
+
+                    transcript +=
+                        event.results[i][0]
+                            .transcript;
+                }
+            }
+
+
+            transcript =
+                transcript.trim();
+
+
+            const speechText =
+                document.getElementById(
+                    "speechText"
+                );
+
+
+            if (
+                speechText &&
+                transcript
+            ) {
+
+                speechText.value =
+                    transcript;
+            }
+
+
+            console.log(
+                "✅ Recognized:",
+                transcript
+            );
         };
 
 
+    // ========================================================
+    // ERROR
+    // ========================================================
+
     recognition.onerror =
         function (event) {
+
+            isListening =
+                false;
+
 
             console.error(
                 "Speech recognition error:",
                 event.error
             );
 
-            alert(
-                "Speech recognition error: "
-                + event.error
-            );
 
+            const speechText =
+                document.getElementById(
+                    "speechText"
+                );
+
+
+            if (
+                speechText &&
+                speechText.value ===
+                    "Listening..."
+            ) {
+
+                speechText.value =
+                    "";
+            }
+
+
+            switch (
+                event.error
+            ) {
+
+                case "not-allowed":
+
+                    alert(
+                        "Microphone permission is blocked. Allow microphone access in Chrome."
+                    );
+
+                    break;
+
+
+                case "no-speech":
+
+                    alert(
+                        "No speech was detected. Please speak clearly and try again."
+                    );
+
+                    break;
+
+
+                case "audio-capture":
+
+                    alert(
+                        "No microphone was detected."
+                    );
+
+                    break;
+
+
+                case "network":
+
+                    alert(
+                        "Speech recognition needs an internet connection."
+                    );
+
+                    break;
+
+
+                case "aborted":
+
+                    console.log(
+                        "Speech recognition aborted."
+                    );
+
+                    break;
+
+
+                default:
+
+                    alert(
+                        "Speech recognition error: " +
+                        event.error
+                    );
+            }
         };
 
 
-    recognition.start();
+    // ========================================================
+    // END
+    // ========================================================
 
+    recognition.onend =
+        function () {
+
+            isListening =
+                false;
+
+
+            console.log(
+                "🎤 Speech recognition ended."
+            );
+        };
+
+
+    // ========================================================
+    // START RECOGNITION
+    // ========================================================
+
+    try {
+
+        recognition.start();
+
+    } catch (error) {
+
+        isListening =
+            false;
+
+
+        console.error(
+            "Could not start speech recognition:",
+            error
+        );
+    }
 }
 
 
-// ============================================
+// ============================================================
+// STOP SPEECH RECOGNITION
+// ============================================================
+
+function stopSpeechRecognition() {
+
+    if (recognition) {
+
+        try {
+
+            recognition.stop();
+
+        } catch (error) {
+
+            console.error(
+                "Could not stop recognition:",
+                error
+            );
+        }
+    }
+
+
+    isListening =
+        false;
+
+
+    console.log(
+        "Speech recognition stopped."
+    );
+}
+
+
+// ============================================================
 // SPEECH → SIGN
-// ============================================
+// ============================================================
 
 async function convertSpeechToSign() {
 
-    const text =
+    const speechText =
         document.getElementById(
             "speechText"
-        ).value;
+        );
+
+
+    const glossOutput =
+        document.getElementById(
+            "glossOutput"
+        );
+
+
+    const languageElement =
+        document.getElementById(
+            "language"
+        );
+
+
+    if (!speechText) {
+
+        console.error(
+            "speechText element not found."
+        );
+
+        return;
+    }
+
+
+    const text =
+        speechText.value.trim();
 
 
     const language =
-        document.getElementById(
-            "language"
-        ).value;
+        languageElement
+            ? languageElement.value
+            : "en";
 
+
+    // ========================================================
+    // VALIDATE
+    // ========================================================
 
     if (
         !text ||
-        text === "🎤 Listening..."
+        text === "Listening..."
     ) {
 
         alert(
@@ -332,11 +759,26 @@ async function convertSpeechToSign() {
     }
 
 
-    try {
+    if (
+        isListening
+    ) {
 
-        // ----------------------------------------
-        // SEND TEXT TO FLASK
-        // ----------------------------------------
+        stopSpeechRecognition();
+    }
+
+
+    if (glossOutput) {
+
+        glossOutput.innerText =
+            "⏳ Converting...";
+    }
+
+
+    // ========================================================
+    // SEND TO FLASK
+    // ========================================================
+
+    try {
 
         const response =
             await fetch(
@@ -346,96 +788,221 @@ async function convertSpeechToSign() {
                     method: "POST",
 
                     headers: {
+
                         "Content-Type":
                             "application/json"
                     },
 
-                    body: JSON.stringify({
+                    body:
+                        JSON.stringify({
 
-                        text: text,
+                            text:
+                                text,
 
-                        language: language
-
-                    })
-
+                            language:
+                                language
+                        })
                 }
             );
 
 
-        // ----------------------------------------
-        // GET JSON RESPONSE
-        // ----------------------------------------
+        if (!response.ok) {
+
+            throw new Error(
+                "Server returned HTTP " +
+                response.status
+            );
+        }
+
 
         const data =
             await response.json();
 
 
-        // ----------------------------------------
-        // SUCCESS
-        // ----------------------------------------
-
-        if (data.success) {
-
-            // Show ISL gloss
-
-            document.getElementById(
-                "glossOutput"
-            ).innerText =
-                data.gloss.join(" → ");
+        console.log(
+            "Text-to-sign response:",
+            data
+        );
 
 
-            // ------------------------------------
-            // START 3D AVATAR
-            // ------------------------------------
+        // ====================================================
+        // SERVER ERROR
+        // ====================================================
 
-            if (data.avatar) {
+        if (!data.success) {
 
-                playSignSequence(
-                    data.avatar
-                );
+            if (glossOutput) {
 
+                glossOutput.innerText =
+                    "❌ " +
+                    (
+                        data.message ||
+                        "Conversion failed."
+                    );
             }
+
+            return;
+        }
+
+
+        // ====================================================
+        // DISPLAY GLOSS
+        // ====================================================
+
+        if (glossOutput) {
+
+            if (
+                data.gloss &&
+                data.gloss.length
+            ) {
+
+                glossOutput.innerText =
+                    data.gloss.join(
+                        " → "
+                    );
+
+            } else {
+
+                glossOutput.innerText =
+                    "No gloss generated.";
+            }
+        }
+
+
+        // ====================================================
+        // AVATAR
+        // ====================================================
+
+        if (
+            data.avatar &&
+            data.avatar.length
+        ) {
+
+            console.log(
+                "Sending sequence to avatar:",
+                data.avatar
+            );
+
+
+            playSignSequence(
+                data.avatar
+            );
 
         } else {
 
-            alert(
-                data.message
+            console.log(
+                "No avatar sequence returned."
             );
-
         }
 
 
     } catch (error) {
 
         console.error(
-            "Speech to sign error:",
+            "Speech-to-sign error:",
             error
         );
 
 
+        if (glossOutput) {
+
+            glossOutput.innerText =
+                "❌ Could not connect to SignBridge backend.";
+        }
+
+
         alert(
-            "Could not connect to the server."
+            "Could not connect to the SignBridge backend."
         );
-
     }
-
 }
 
 
-// ============================================
+// ============================================================
+// OPTIONAL: ENTER KEY
+// ============================================================
+
+function setupKeyboardShortcut() {
+
+    const speechText =
+        document.getElementById(
+            "speechText"
+        );
+
+
+    if (!speechText) {
+        return;
+    }
+
+
+    speechText.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Enter" &&
+                event.ctrlKey
+            ) {
+
+                event.preventDefault();
+
+                convertSpeechToSign();
+            }
+        }
+    );
+}
+
+
+// ============================================================
+// PAGE CLEANUP
+// ============================================================
+
+window.addEventListener(
+    "beforeunload",
+    function() {
+
+        if (cameraStream) {
+
+            cameraStream
+                .getTracks()
+                .forEach(
+                    track =>
+                        track.stop()
+                );
+        }
+
+
+        if (
+            recognition &&
+            isListening
+        ) {
+
+            try {
+
+                recognition.stop();
+
+            } catch (error) {
+
+                console.error(
+                    error
+                );
+            }
+        }
+
+
+        if (
+            "speechSynthesis" in window
+        ) {
+
+            window.speechSynthesis.cancel();
+        }
+    }
+);
+
+
+// ============================================================
 // MAKE FUNCTIONS AVAILABLE TO HTML
-// ============================================
-//
-// Because script.js is a JavaScript MODULE,
-// functions are not automatically global.
-//
-// Your HTML uses:
-// onclick="uploadMedia()"
-// onclick="startCamera()"
-// etc.
-//
-// Therefore we expose them through window.
-// ============================================
+// ============================================================
 
 window.uploadMedia =
     uploadMedia;
@@ -452,7 +1019,20 @@ window.speakDetectedSign =
 window.startSpeechRecognition =
     startSpeechRecognition;
 
+window.stopSpeechRecognition =
+    stopSpeechRecognition;
+
 window.convertSpeechToSign =
     convertSpeechToSign;
 
-    
+
+// ============================================================
+// INITIALIZE
+// ============================================================
+
+setupKeyboardShortcut();
+
+
+console.log(
+    "✅ SignBridge script.js loaded."
+);

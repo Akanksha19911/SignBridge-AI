@@ -329,3 +329,15 @@ if __name__ == "__main__":
     app.run(
         debug=True
     )
+
+from modules.avatar_controller import all_signs_json  # add to your existing import
+
+# ...
+
+# ======================================================
+# SIGN LIBRARY (for the 3D avatar's "Quick Signs" panel)
+# ======================================================
+
+@app.route("/api/signs", methods=["GET"])
+def api_signs():
+    return jsonify(all_signs_json())

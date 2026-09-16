@@ -1,393 +1,115 @@
 """
-SignBridge AI
--------------
-English/Hindi text → ISL-style gloss translator.
+text_to_sign.py
+----------------
+    text_to_gloss(text, language)  -- used by app.py's /text-to-sign route
+    gloss_to_english(gloss)        -- used by app.py's /sign-to-text route
 
-This is an MVP/demo translation system.
-It converts normal sentences into a simplified
-Indian Sign Language-style word order.
+Matching strategy: normalize the text, match the longest known phrase first
+("thank you again" before "thank you"), convert matches to ISL-style gloss
+tokens (HELLO, THANK-YOU, ...). Unmatched words are still emitted (as their
+own uppercase token) so nothing silently disappears -- the avatar controller
+will just mark them found=False.
 """
 
 import re
+from modules.avatar_controller import SIGN_KEY_TO_GLOSS, GLOSS_TO_SIGN_KEY
 
-
-# ======================================================
-# WH WORDS
-# ======================================================
-
-WH_WORDS = {
-    "where",
-    "what",
-    "who",
-    "when",
-    "why",
-    "how",
-    "which",
-    "whom"
+# phrase -> sign_key (add synonyms here as you grow the sign set)
+PHRASE_ALIASES = {
+    "hello": "hello",
+    "hi": "hello",
+    "thank you again": "thank_you_again",
+    "thank you": "thank_you",
+    "thanks": "thank_you",
+    "please": "please",
+    "yes": "yes",
+    "no": "no",
+    "where": "where",
+    "help": "help",
+    "more": "more",
+    "food": "food",
+    "hungry": "food",
+    "water": "water",
+    "thirsty": "water",
+    "airport": "airport",
+    "registration desk": "registration_desk",
+    "registration": "registration_desk",
+    "goodbye": "goodbye",
+    "bye": "goodbye",
 }
+_SORTED_PHRASES = sorted(PHRASE_ALIASES.keys(), key=len, reverse=True)
 
+# Small stopword list so gloss output doesn't get cluttered with "the", "is", etc.
+STOPWORDS = {"a", "an", "the", "is", "are", "am", "to", "of", "my", "your"}
 
-# ======================================================
-# WORDS TO REMOVE
-# ======================================================
 
-STOP_WORDS = {
-    "is",
-    "are",
-    "am",
-    "was",
-    "were",
-
-    "the",
-    "a",
-    "an",
-
-    "do",
-    "does",
-    "did",
-
-    "will",
-    "shall",
-
-    "can",
-    "could",
-    "should",
-    "would",
-
-    "has",
-    "have",
-    "had",
-
-    "of",
-
-    "please",
-    "kindly"
-}
-
-
-# ======================================================
-# HINDI → ENGLISH
-# ======================================================
-
-HINDI_TO_ENGLISH = {
-
-    "डॉक्टर": "doctor",
-
-    "कहाँ": "where",
-    "कहां": "where",
-
-    "है": "is",
-    "हैं": "are",
-
-    "मैं": "i",
-    "मुझे": "i",
-
-    "आप": "you",
-    "तुम": "you",
-
-    "क्या": "what",
-
-    "कब": "when",
-
-    "क्यों": "why",
-
-    "कैसे": "how",
-
-    "कौन": "who",
-
-    "पंजीकरण": "registration",
-
-    "डेस्क": "desk",
-
-    "पानी": "water",
-
-    "मदद": "help",
-
-    "धन्यवाद": "thank you",
-
-    "हाँ": "yes",
-    "हां": "yes",
-
-    "नहीं": "no",
-
-    "दवा": "medicine",
-
-    "अस्पताल": "hospital",
-
-    "घर": "home",
-
-    "स्कूल": "school",
-
-    "कॉलेज": "college",
-
-    "खाना": "food",
-
-    "एयरपोर्ट": "airport",
-
-    "हवाईअड्डा": "airport"
-}
-
-
-# ======================================================
-# MULTI-WORD EXPRESSIONS
-# ======================================================
-
-MULTI_WORD = {
-
-    "thank you":
-        "THANK_YOU",
-
-    "excuse me":
-        "EXCUSE_ME",
-
-    "good morning":
-        "GOOD_MORNING",
-
-    "good evening":
-        "GOOD_EVENING",
-
-    "nice to meet you":
-        "NICE_TO_MEET_YOU",
-
-    "good night":
-        "GOOD_NIGHT"
-}
-
-
-# ======================================================
-# HINDI TRANSLATION
-# ======================================================
-
-def _translate_hindi(text: str) -> str:
-
-    words = text.split()
-
-    translated = []
-
-
-    for word in words:
-
-        clean_word = word.strip(
-            ".,!?;:"
-        )
-
-        translated.append(
-            HINDI_TO_ENGLISH.get(
-                clean_word,
-                clean_word
-            )
-        )
-
-
-    return " ".join(
-        translated
-    )
-
-
-# ======================================================
-# MULTI-WORD PROCESSING
-# ======================================================
-
-def _apply_multi_word(text: str) -> str:
-
-    for phrase, token in MULTI_WORD.items():
-
-        text = text.replace(
-            phrase,
-            token
-        )
-
+def _normalize(text: str) -> str:
+    text = text.lower().strip()
+    text = re.sub(r"[^a-z0-9\s]", "", text)
+    text = re.sub(r"\s+", " ", text)
     return text
 
 
-# ======================================================
-# TEXT → ISL GLOSS
-# ======================================================
+def text_to_gloss(text: str, language: str = "en"):
+    """
+    Convert a sentence into a list of ISL-style gloss tokens, e.g.
+        "thank you please" -> ["THANK-YOU", "PLEASE"]
+        "where is the registration desk" -> ["WHERE", "REGISTRATION-DESK"]
 
-def text_to_gloss(
-    text: str,
-    language: str = "en"
-) -> list:
+    `language` is accepted for forward-compatibility (e.g. if you later add
+    translation before gloss matching); the current matcher is English-only.
+    """
+    normalized = _normalize(text)
+    if not normalized:
+        return []
 
-    # Clean input
+    padded = f" {normalized} "
+    matches = []  # (start, phrase, sign_key)
+    for phrase in _SORTED_PHRASES:
+        pattern = f" {re.escape(phrase)} "
+        for m in re.finditer(pattern, padded):
+            matches.append((m.start(), phrase, PHRASE_ALIASES[phrase]))
 
-    text = (
-        text or ""
-    ).strip().lower()
-
-
-    # Remove punctuation
-
-    text = re.sub(
-        r"[?.!,;:]",
-        "",
-        text
-    )
-
-
-    # Hindi → English
-
-    if language == "hi":
-
-        text = _translate_hindi(
-            text
-        )
-
-
-    # Replace common phrases
-
-    text = _apply_multi_word(
-        text
-    )
-
-
-    # Split into words
-
-    tokens = text.split()
-
-
-    multi_word_tokens = set(
-        MULTI_WORD.values()
-    )
-
-
-    content = []
-
-    wh = []
-
-
-    # ==================================================
-    # CREATE GLOSS
-    # ==================================================
-
-    for token in tokens:
-
-        # Multi-word sign
-
-        if token in multi_word_tokens:
-
-            content.append(
-                token
-            )
-
-
-        # Ignore grammar words
-
-        elif token in STOP_WORDS:
-
+    matches.sort(key=lambda m: (m[0], -len(m[1])))
+    used_spans = []
+    final = []
+    for start, phrase, sign_key in matches:
+        end = start + len(phrase) + 1
+        if any(not (end <= s or start >= e) for s, e in used_spans):
             continue
+        used_spans.append((start, end))
+        final.append((start, phrase, sign_key))
+    final.sort(key=lambda m: m[0])
+
+    gloss = [SIGN_KEY_TO_GLOSS[sign_key] for _, _, sign_key in final]
+
+    # Blank out matched spans, then keep any leftover non-stopword tokens
+    # so the gloss output still reflects the full sentence.
+    chars = list(padded)
+    for start, end in used_spans:
+        for i in range(start, end):
+            if 0 <= i < len(chars) and chars[i] != " ":
+                chars[i] = " "
+    for word in "".join(chars).split():
+        if word not in STOPWORDS:
+            gloss.append(word.upper())
+
+    return gloss
 
 
-        # WH words go to the end
-
-        elif token in WH_WORDS:
-
-            wh.append(
-                token
-            )
-
-
-        # Normal content word
-
+def gloss_to_english(gloss):
+    """
+    Reconstruct a rough English sentence from a list of gloss tokens, e.g.
+        ["THANK-YOU", "PLEASE"] -> "thank you please"
+    Known gloss tokens map back to their natural label; unknown tokens are
+    lowercased as-is.
+    """
+    words = []
+    for token in gloss:
+        key = GLOSS_TO_SIGN_KEY.get(str(token).upper())
+        if key:
+            from modules.avatar_controller import SIGN_LIBRARY
+            words.append(SIGN_LIBRARY[key]["label"].lower())
         else:
-
-            content.append(
-                token
-            )
-
-
-    # ISL-style order:
-    #
-    # CONTENT + WH WORD
-
-    gloss = (
-        content +
-        wh
-    )
-
-
-    # Convert to uppercase
-
-    return [
-        word.upper()
-        for word in gloss
-    ]
-
-
-# ======================================================
-# GLOSS → ENGLISH
-# ======================================================
-
-def gloss_to_english(
-    words: list
-) -> str:
-
-    if not words:
-
-        return ""
-
-
-    # Convert tokens
-
-    tokens = [
-
-        word.replace(
-            "_",
-            " "
-        ).lower()
-
-        for word in words
-
-    ]
-
-
-    # ==================================================
-    # WH QUESTION
-    # ==================================================
-
-    if tokens[-1] in WH_WORDS:
-
-        wh = tokens[-1]
-
-        rest = " ".join(
-            tokens[:-1]
-        )
-
-
-        if rest:
-
-            sentence = (
-                f"{wh.capitalize()} "
-                f"is the {rest}?"
-            )
-
-        else:
-
-            sentence = (
-                f"{wh.capitalize()}?"
-            )
-
-
-    # ==================================================
-    # NORMAL SENTENCE
-    # ==================================================
-
-    else:
-
-        sentence = " ".join(
-            tokens
-        )
-
-
-        if sentence:
-
-            sentence = (
-                sentence[0].upper()
-                +
-                sentence[1:]
-                +
-                "."
-            )
-
-
-    return sentence
+            words.append(str(token).replace("-", " ").lower())
+    return " ".join(words)
