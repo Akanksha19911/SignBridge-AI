@@ -56,3 +56,9 @@ One frame = 126 numbers = 2 hands x 21 landmarks x (x, y, z), raw MediaPipe norm
 - Show friendly error messages in the UI (toast), never only console errors.
 - Accessible: large readable text, visible focus states, aria-labels on icon buttons, captions always visible. Must work at 1366x768 and on a 400px wide phone screen.
 - Keep code simple and commented. Hackathon demo reliability matters more than cleverness.
+
+## Integration update
+- Backend (app.py, modules/) now implements the API contract above, built on the teammate's text_to_sign.py and avatar_controller.py. app.py may be edited for API routes.
+- /api/text-to-sign and media segments also return `avatar` (sequence for the 3D avatar). Clips without a sign video have `url: ""` and `type: "avatar"`; ClipPlayer then shows the 3D avatar (static/avatar/signbridge_avatar.glb) with the word.
+- api.js uses the live backend by default; add `?mock=1` to a page URL for sample data.
+- Media transcription and sign-model training need `pip install -r requirements-ml.txt`.

@@ -1,6 +1,28 @@
 import { getSettings } from "./settings.js";
 import { el } from "./ui.js";
 
+// 3D avatar (teammate's GLB) shown for words that have no sign video yet.
+const AVATAR_URL = "/static/avatar/signbridge_avatar.glb";
+const MODEL_VIEWER_SRC = "https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js";
+let modelViewerPromise = null;
+
+function loadModelViewer() {
+  if (window.customElements && customElements.get("model-viewer")) {
+    return Promise.resolve();
+  }
+  if (!modelViewerPromise) {
+    modelViewerPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = MODEL_VIEWER_SRC;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("3D avatar library failed to load"));
+      document.head.appendChild(script);
+    });
+  }
+  return modelViewerPromise;
+}
+
 export class ClipPlayer {
   constructor(containerEl) {
     this.containerEl = containerEl;
@@ -25,6 +47,9 @@ export class ClipPlayer {
     this.speedDisplay = el("span", { className: "speed-display" }, [`${this.speed.toFixed(1)}x`]);
 
     this.stage = el("div", { className: "clip-player-stage video-frame" }, [this.video]);
+    this.avatarWord = el("div", { className: "avatar-word", "aria-live": "polite" }, [""]);
+    this.avatarStage = el("div", { className: "avatar-stage" }, [this.avatarWord]);
+    this.modelViewer = null;
     this.controls = el("div", { className: "clip-controls" }, [
       this.playButton,
       this.prevButton,
@@ -77,6 +102,10 @@ export class ClipPlayer {
 
     this.isPlaying = true;
     this.playButton.textContent = "Pause";
+    if (this.currentUsesAvatar()) {
+      this.showAvatarAndContinue();
+      return;
+    }
     this.video.playbackRate = this.speed;
     const playPromise = this.video.play();
     if (playPromise) {
@@ -88,6 +117,13 @@ export class ClipPlayer {
     this.isPlaying = false;
     this.playButton.textContent = "Play";
     this.video.pause();
+    if (this.modelViewer) {
+      try {
+        this.modelViewer.pause();
+      } catch (error) {
+        // ignore
+      }
+    }
     window.clearTimeout(this.fallbackTimer);
   }
 
@@ -170,9 +206,11 @@ export class ClipPlayer {
     }
 
     this.video.removeAttribute("src");
-    this.video.src = clip.url || "";
-    this.video.playbackRate = this.speed;
-    this.video.load();
+    if (clip.url) {
+      this.video.src = clip.url;
+      this.video.playbackRate = this.speed;
+      this.video.load();
+    }
     this.render();
     this.containerEl.dispatchEvent(new CustomEvent("clipchange", { detail: { index: this.index, clip } }));
   }
@@ -189,7 +227,9 @@ export class ClipPlayer {
       return;
     }
 
-    if (!this.stage.contains(this.video)) {
+    if (this.currentUsesAvatar()) {
+      this.mountAvatar(clip);
+    } else if (!this.stage.contains(this.video)) {
       this.stage.replaceChildren(this.video);
     }
 
@@ -217,19 +257,75 @@ export class ClipPlayer {
     return clip?.word || "";
   }
 
-  showFallbackAndContinue() {
+  currentUsesAvatar() {
+    const clip = this.clips[this.index];
+    return Boolean(clip) && !clip.url;
+  }
+
+  mountAvatar(clip) {
+    this.avatarWord.textContent = this.labelForClip(clip);
+    if (!this.stage.contains(this.avatarStage)) {
+      this.stage.replaceChildren(this.avatarStage);
+    }
+    if (this.modelViewer) {
+      return;
+    }
+    loadModelViewer()
+      .then(() => {
+        if (this.modelViewer) {
+          return;
+        }
+        const viewer = document.createElement("model-viewer");
+        viewer.setAttribute("src", AVATAR_URL);
+        viewer.setAttribute("alt", "SignBridge 3D signing avatar");
+        viewer.setAttribute("camera-orbit", "0deg 80deg 2.5m");
+        viewer.setAttribute("disable-zoom", "");
+        viewer.setAttribute("interaction-prompt", "none");
+        viewer.className = "avatar-viewer";
+        viewer.addEventListener("load", () => {
+          const names = viewer.availableAnimations || [];
+          if (names.length) {
+            viewer.animationName = names[0];
+          }
+        });
+        this.modelViewer = viewer;
+        this.avatarStage.prepend(viewer);
+      })
+      .catch(() => {
+        // Library blocked or offline: the large word caption still shows.
+      });
+  }
+
+  showAvatarAndContinue() {
     const clip = this.clips[this.index];
     if (!clip || !this.isPlaying) {
       return;
     }
 
-    this.stage.replaceChildren(el("div", { className: "empty-state" }, [this.labelForClip(clip)]));
+    this.mountAvatar(clip);
+    if (this.modelViewer) {
+      try {
+        this.modelViewer.currentTime = 0;
+        this.modelViewer.play();
+      } catch (error) {
+        // Animation is decorative; keep going.
+      }
+    }
     window.clearTimeout(this.fallbackTimer);
     this.fallbackTimer = window.setTimeout(() => {
       if (this.isPlaying) {
         this.next();
       }
-    }, 1000);
+    }, 1800 / this.speed);
+  }
+
+  showFallbackAndContinue() {
+    const clip = this.clips[this.index];
+    if (!clip || !this.isPlaying) {
+      return;
+    }
+    // Video missing or failed: show the 3D avatar with the word instead.
+    this.showAvatarAndContinue();
   }
 
   emptyState(message) {

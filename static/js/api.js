@@ -1,4 +1,11 @@
-export const MOCK = true;
+// Live backend by default. Add ?mock=1 to any page URL to use sample responses (demo backup).
+export const MOCK = (() => {
+  try {
+    return new URLSearchParams(window.location.search).has("mock");
+  } catch (error) {
+    return false;
+  }
+})();
 
 const MOCK_DELAY = 600;
 const PREDICTIONS = ["HELLO", "REGISTRATION", "DESK", "WHERE"];

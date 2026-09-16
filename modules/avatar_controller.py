@@ -44,8 +44,22 @@ SIGN_LIBRARY = {
         "gloss": "WHERE",
         "animation": "WHERE",
         "expression": "thinking"
-    }
+    },
 }
+
+# Extra demo words used by text_to_sign.py (no dedicated animation yet)
+for _key, _label in {
+    "help": "help", "more": "more", "food": "food", "water": "water",
+    "airport": "airport", "registration_desk": "registration desk",
+    "goodbye": "goodbye", "thank_you_again": "thank you again",
+    "doctor": "doctor", "desk": "desk", "registration": "registration",
+}.items():
+    SIGN_LIBRARY.setdefault(_key, {
+        "label": _label,
+        "gloss": _key.upper().replace("_", "-"),
+        "animation": "IDLE",
+        "expression": "neutral",
+    })
 
 
 SIGN_KEY_TO_GLOSS = {
@@ -61,12 +75,8 @@ GLOSS_TO_SIGN_KEY = {
 
 
 SIGN_ANIMATIONS = {
-    "HELLO": "HELLO",
-    "THANK-YOU": "THANK_YOU",
-    "PLEASE": "PLEASE",
-    "YES": "YES",
-    "NO": "NO",
-    "WHERE": "WHERE"
+    value["gloss"]: value["animation"]
+    for value in SIGN_LIBRARY.values()
 }
 
 
@@ -105,3 +115,11 @@ def create_avatar_sequence(gloss):
         })
 
     return sequence
+
+
+def all_signs_json():
+    """Sign library as a list, for the /api/signs route."""
+    return [
+        {"key": key, **value}
+        for key, value in SIGN_LIBRARY.items()
+    ]
