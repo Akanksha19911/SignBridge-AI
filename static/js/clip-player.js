@@ -3,7 +3,7 @@ import { el } from "./ui.js";
 
 // 3D avatar (teammate's GLB) shown for words that have no sign video yet.
 const AVATAR_URL = "/static/avatar/signbridge_avatar.glb";
-const MODEL_VIEWER_SRC = "https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js";
+const MODEL_VIEWER_SRC = "/static/vendor/model-viewer/model-viewer.min.js";
 let modelViewerPromise = null;
 
 function loadModelViewer() {
