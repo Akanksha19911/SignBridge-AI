@@ -12,6 +12,7 @@ will just mark them found=False.
 """
 
 import re
+import unicodedata
 from modules.avatar_controller import SIGN_KEY_TO_GLOSS, GLOSS_TO_SIGN_KEY
 
 # phrase -> sign_key (add synonyms here as you grow the sign set)
@@ -36,6 +37,37 @@ PHRASE_ALIASES = {
     "registration": "registration_desk",
     "goodbye": "goodbye",
     "bye": "goodbye",
+    "doctor": "doctor",
+    "desk": "desk",
+    # Added for the demo vocabulary
+    "hospital": "hospital",
+    "clinic": "hospital",
+    "medicine": "medicine",
+    "tablet": "medicine",
+    "pain": "pain",
+    "hurts": "pain",
+    "name": "name",
+    "sorry": "sorry",
+    "wait": "wait",
+    "today": "today",
+    "tomorrow": "tomorrow",
+    "time": "time",
+    "ticket": "ticket",
+    "train": "train",
+    "station": "station",
+    "school": "school",
+    "college": "school",
+    "teacher": "teacher",
+    "student": "student",
+    "money": "money",
+    "toilet": "toilet",
+    "washroom": "toilet",
+    "emergency": "emergency",
+    "family": "family",
+    "good": "good",
+    "fine": "good",
+    "bad": "bad",
+    "understand": "understand",
 }
 _SORTED_PHRASES = sorted(PHRASE_ALIASES.keys(), key=len, reverse=True)
 
@@ -56,6 +88,22 @@ HINDI_TO_ENGLISH = {
     "कृपया": "please", "हाँ": "yes", "हां": "yes", "नहीं": "no",
     "कहाँ": "where", "कहां": "where", "मदद": "help", "पानी": "water",
     "खाना": "food", "डॉक्टर": "doctor", "अलविदा": "goodbye",
+    # Added for the demo vocabulary
+    "अस्पताल": "hospital", "दवाई": "medicine", "दवा": "medicine",
+    "दर्द": "pain", "नाम": "name", "माफ": "sorry", "रुको": "wait",
+    "समय": "time", "आज": "today", "कल": "tomorrow", "टिकट": "ticket",
+    "ट्रेन": "train", "स्टेशन": "station", "स्कूल": "school",
+    "शिक्षक": "teacher", "छात्र": "student", "पैसा": "money",
+    "शौचालय": "toilet", "आपातकाल": "emergency", "परिवार": "family",
+    "अच्छा": "good", "बुरा": "bad", "समझ": "understand",
+    "पंजीकरण": "registration",
+}
+
+
+# Hindi text can arrive in different Unicode forms; compare in a single normal form.
+_HINDI_NORMALIZED = {
+    unicodedata.normalize("NFC", key): value
+    for key, value in HINDI_TO_ENGLISH.items()
 }
 
 
@@ -69,9 +117,11 @@ def text_to_gloss(text: str, language: str = "en"):
     translation before gloss matching); the current matcher is English-only.
     """
     if language == "hi":
-        text = " ".join(
-            HINDI_TO_ENGLISH.get(w.strip("।?!,."), w) for w in str(text).split()
-        )
+        words = []
+        for word in str(text).split():
+            key = unicodedata.normalize("NFC", word.strip("।?!,.\u200c\u200d"))
+            words.append(_HINDI_NORMALIZED.get(key, word))
+        text = " ".join(words)
     normalized = _normalize(text)
     if not normalized:
         return []

@@ -53,6 +53,14 @@ for _key, _label in {
     "airport": "airport", "registration_desk": "registration desk",
     "goodbye": "goodbye", "thank_you_again": "thank you again",
     "doctor": "doctor", "desk": "desk", "registration": "registration",
+    # Added for the demo vocabulary
+    "hospital": "hospital", "medicine": "medicine", "pain": "pain",
+    "name": "name", "sorry": "sorry", "wait": "wait", "today": "today",
+    "tomorrow": "tomorrow", "time": "time", "ticket": "ticket",
+    "train": "train", "station": "station", "school": "school",
+    "teacher": "teacher", "student": "student", "money": "money",
+    "toilet": "toilet", "emergency": "emergency", "family": "family",
+    "good": "good", "bad": "bad", "understand": "understand",
 }.items():
     SIGN_LIBRARY.setdefault(_key, {
         "label": _label,
