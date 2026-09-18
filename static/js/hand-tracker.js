@@ -1,7 +1,7 @@
-import { HandLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+import { HandLandmarker, FilesetResolver } from "/static/vendor/mediapipe/vision_bundle.mjs";
 
-const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm";
-const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
+const WASM_URL = "/static/vendor/mediapipe/wasm";
+const MODEL_URL = "/static/vendor/models/hand_landmarker.task";
 const HAND_CONNECTIONS = [
   [0, 1], [1, 2], [2, 3], [3, 4],
   [0, 5], [5, 6], [6, 7], [7, 8],
