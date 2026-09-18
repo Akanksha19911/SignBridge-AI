@@ -327,19 +327,28 @@ button {
   gap: 0.75rem;
 }
 
-.brand span:last-child {
+.brand-copy {
   display: grid;
   min-width: 0;
   gap: 0.125rem;
 }
 
-.brand strong,
+.brand-wordmark,
 .mobile-brand {
   color: var(--text);
   font-family: var(--font-heading);
   font-size: 1.125rem;
   font-weight: 800;
   line-height: 1.1;
+}
+
+.brand-wordmark {
+  min-width: max-content;
+}
+
+.brand-line {
+  display: block;
+  white-space: nowrap;
 }
 
 .brand small {
