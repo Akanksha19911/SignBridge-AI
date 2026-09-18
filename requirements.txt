@@ -1,4 +1,4 @@
 flask
-numpy<2
+numpy
 scikit-learn
 joblib
