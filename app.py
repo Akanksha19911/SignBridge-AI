@@ -31,15 +31,21 @@ recognizer = SignRecognizer()
 # HELPERS
 # ======================================================
 
+SIGN_MEDIA = [(".mp4", "sign"), (".webm", "sign"), (".png", "image"), (".jpg", "image"), (".jpeg", "image")]
+
+
 def gloss_to_clips(gloss):
-    """One entry per gloss word. url is set only if a sign video exists;
-    otherwise the frontend shows the 3D avatar with the word."""
+    """One entry per gloss word. A word can be a video clip or a still picture
+    (png/jpg); with neither, the frontend shows the 3D avatar with the word."""
     clips = []
     for word in gloss:
         name = str(word).lower().replace("-", "_")
-        path = os.path.join(SIGN_DIR, f"{name}.mp4")
-        url = f"/static/signs/{name}.mp4" if os.path.exists(path) else ""
-        clips.append({"word": str(word).upper(), "type": "sign" if url else "avatar", "url": url})
+        url, kind = "", "avatar"
+        for ext, media in SIGN_MEDIA:
+            if os.path.exists(os.path.join(SIGN_DIR, f"{name}{ext}")):
+                url, kind = f"/static/signs/{name}{ext}", media
+                break
+        clips.append({"word": str(word).upper(), "type": kind, "url": url})
     return clips
 
 

@@ -47,6 +47,7 @@ export class ClipPlayer {
     this.speedDisplay = el("span", { className: "speed-display" }, [`${this.speed.toFixed(1)}x`]);
 
     this.stage = el("div", { className: "clip-player-stage video-frame" }, [this.video]);
+    this.image = el("img", { alt: "Sign picture", className: "clip-image" });
     this.avatarWord = el("div", { className: "avatar-word", "aria-live": "polite" }, [""]);
     this.avatarStage = el("div", { className: "avatar-stage" }, [this.avatarWord]);
     this.modelViewer = null;
@@ -63,6 +64,12 @@ export class ClipPlayer {
 
     this.video.addEventListener("ended", () => this.next());
     this.video.addEventListener("error", () => this.showFallbackAndContinue());
+    // A missing or corrupt picture falls back to the avatar with the word.
+    this.image.addEventListener("error", () => {
+      if (this.isPlaying) {
+        this.showAvatarAndContinue();
+      }
+    });
     this.render();
   }
 
@@ -104,6 +111,10 @@ export class ClipPlayer {
     this.playButton.textContent = "Pause";
     if (this.currentUsesAvatar()) {
       this.showAvatarAndContinue();
+      return;
+    }
+    if (this.currentIsImage()) {
+      this.showImageAndContinue();
       return;
     }
     this.video.playbackRate = this.speed;
@@ -206,7 +217,7 @@ export class ClipPlayer {
     }
 
     this.video.removeAttribute("src");
-    if (clip.url) {
+    if (clip.url && !this.currentIsImage()) {
       this.video.src = clip.url;
       this.video.playbackRate = this.speed;
       this.video.load();
@@ -229,6 +240,8 @@ export class ClipPlayer {
 
     if (this.currentUsesAvatar()) {
       this.mountAvatar(clip);
+    } else if (this.currentIsImage()) {
+      this.mountImage(clip);
     } else if (!this.stage.contains(this.video)) {
       this.stage.replaceChildren(this.video);
     }
@@ -260,6 +273,36 @@ export class ClipPlayer {
   currentUsesAvatar() {
     const clip = this.clips[this.index];
     return Boolean(clip) && !clip.url;
+  }
+
+  currentIsImage() {
+    const clip = this.clips[this.index];
+    return Boolean(clip?.url) && (clip.type === "image" || /\.(png|jpe?g|webp|gif)$/i.test(clip.url));
+  }
+
+  mountImage(clip) {
+    this.image.src = clip.url;
+    this.imageCaption = this.imageCaption || el("div", { className: "avatar-word" }, [""]);
+    this.imageCaption.textContent = this.labelForClip(clip);
+    this.imageStage = this.imageStage || el("div", { className: "avatar-stage" }, []);
+    this.imageStage.replaceChildren(this.image, this.imageCaption);
+    if (!this.stage.contains(this.imageStage)) {
+      this.stage.replaceChildren(this.imageStage);
+    }
+  }
+
+  showImageAndContinue() {
+    const clip = this.clips[this.index];
+    if (!clip || !this.isPlaying) {
+      return;
+    }
+    this.mountImage(clip);
+    window.clearTimeout(this.fallbackTimer);
+    this.fallbackTimer = window.setTimeout(() => {
+      if (this.isPlaying) {
+        this.next();
+      }
+    }, 1800 / this.speed);
   }
 
   mountAvatar(clip) {

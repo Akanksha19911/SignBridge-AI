@@ -2466,3 +2466,14 @@ output {
   font-weight: 700;
   letter-spacing: 0.02em;
 }
+
+
+/* Still-picture signs (png/jpg) shown in the sign player */
+.avatar-stage .clip-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #0b1020;
+}
